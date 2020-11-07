@@ -6,8 +6,8 @@ This demo simulates a battle between two armies that are controlled by Genetic A
 
 CONTROLS:
 
-ESC - Open/Close Menu
-WASD/Arrow Keys - Move the camera.
+ESC - Open/Close Menu, 
+WASD/Arrow Keys - Move the camera, 
 Right Click - Rotate the camera
 
 Hover over units to see their attributes, left click on a unit to pin it's attribute display.
