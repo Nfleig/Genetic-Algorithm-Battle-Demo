@@ -4,44 +4,86 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
+    // Public Properties
     public float MovementSpeed;
     public float ZoomSpeed;
-
     public float MinZoomDistance;
     public float MaxZoomDistance;
 
+    // Private Properties
     private Camera camera;
-    private bool isClicking;
-
+    private bool _isClicking;
     private float rotX = 50;
-    // Start is called before the first frame update
+
+
     void Awake()
     {
         camera = Camera.main;
+        rotX = camera.transform.eulerAngles.x;
     }
 
-    // Update is called once per frame
+    /*
+     * Main gameplay loop
+     */
     void Update()
     {
+        // Get keyboard inputs
+
         float xInput = Input.GetAxis("Horizontal");
         float zInput = Input.GetAxis("Vertical");
+        
+        // Get whether the player is right clicking
+
         if(Input.GetButtonDown("Fire2")){
-            isClicking = true;
+            _isClicking = true;
         }
         if(Input.GetButtonUp("Fire2")){
-            isClicking = false;
+            _isClicking = false;
         }
         
+        // Get camera movement direction
+
         Vector3 dir = transform.forward * zInput + transform.right * xInput;
+        
+        // Apply camera movement
+
         transform.position += dir * MovementSpeed * Time.deltaTime;
-        if(isClicking){
+        
+        // If the player is clicking then rotate the camera with their mouse
+
+        if(_isClicking){
+
+            // Get the horizontal mouse movement
+
             float rotY = Input.GetAxis("Mouse X") * 5;
-            rotX += Input.GetAxis("Mouse Y") * 5;
+            
+            // Update the camera rotation with 
+
+            rotX += Input.GetAxis("Mouse Y") * 2;
+
+            // Clamp the camera's vertical rotation
+
+            rotX = Mathf.Clamp(rotX, -60, -30);
+            
+            // Apply the camera's horizontal rotation to the parent object
+
             transform.eulerAngles = new Vector3(0, transform.eulerAngles.y + rotY, 0);
-            //camera.transform.eulerAngles = new Vector3(-rotX, 0, 0);
+            
+            // Apply the camera's vertical rotation to the camera itself
+            
+            camera.transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, 0);
         }
+
+        // Get the scrollwheel input
+
         float scroll = Input.GetAxis("Mouse ScrollWheel");
+        
+        // Calculate the distance that the camera is scrolled in
+
         float distance = Vector3.Distance(transform.position, camera.transform.position);
+        
+        // If the camera is not too zoomed in or out then zoom the camera
+
         if(!((distance < MinZoomDistance && scroll > 0f) || (distance > MaxZoomDistance && scroll < 0f))){
             camera.transform.position += camera.transform.forward * scroll * 5;
         }

@@ -13,16 +13,12 @@ public class AI : MonoBehaviour
         //These two are just lists of all of the units on each side that the Gene will use to create it's genotype later
         public List<FighterController> fighters;
         public List<FighterController> defenders;
-
         public List<FighterController> genotype;
-
         public double fitness;
 
         //These values help the AI execute the genotype's instructions if this gene is chosen
         public int matchups;
         private bool MoreAttackers;
-
-
         private AI ai;
 
         //Initializer assigns all of the gene's data and then generates a random genotype
@@ -268,10 +264,10 @@ public class AI : MonoBehaviour
             return 0;
         }
         else if(x.fitness > y.fitness){
-            return 1;
+            return -1;
         }
         else{
-            return -1;
+            return 1;
         }
     }
 

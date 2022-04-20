@@ -5,10 +5,17 @@ using UnityEngine.UI;
 
 public class AISettings : MonoBehaviour
 {
+    // Public Properties
     public AI ai;
     public GameController game;
+
+    // Private Properties
     private List<Setting> settings;
-    // Start is called before the first frame update
+
+    /*
+     * This function will initialize the settings handler by finding all settings objects
+     */
+
     void Start()
     {
         settings = new List<Setting>();
@@ -16,67 +23,68 @@ public class AISettings : MonoBehaviour
             settings.Add(setting.GetComponent<Setting>());
         }
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     
+    /*
+     * This function will set all of the settings in the AI when the battle starts
+     */
+
     public void StartBattle(){
         int oldDebris = game.ObstacleCount;
         foreach(Setting setting in settings){
             switch(setting.ID){
-                case 1:
+                case 1: // Agressiveness
                     ai.agressiveness = setting.value;
                     break;
-                case 2:
+                case 2: // Lethal Damage Weight
                     ai.LethalDamageWeight = setting.value;
                     break;
-                case 3:
+                case 3: // Extra Damage Weight
                     ai.ExtraDamageWeight = setting.value;
                     break;
-                case 4:
+                case 4: // Enemy Extra Damage Weight
                     ai.EnemyExtraDamageWeight = setting.value;
                     break;
-                case 5:
+                case 5: // Distance Weight
                     ai.distanceWeight = setting.value;
                     break;
-                case 6:
+                case 6: // Use Pathfinding
                     ai.usePathfinding = setting.boolValue;
                     break;
-                case 7:
+                case 7: // Generations
                     ai.generations = setting.numValue;
                     break;
-                case 8:
+                case 8: // Population Size
                     ai.populationSize = setting.numValue;
                     break;
-                case 9:
+                case 9: // Mutate chance
                     ai.mutateChance = setting.value;
                     break;
-                case 10:
+                case 10: // Families
                     ai.families = setting.numValue;
                     break;
-                case 11:
+                case 11: // Selection Method
                     ai.selectionMethod = setting.numValue;
                     break;
-                case 12:
+                case 12: // Fighter Count
                     game.fighterCount = setting.numValue;
                     break;
-                case 13:
+                case 13: // Defender Count
                     game.defenderCount = setting.numValue;
                     break;
-                case 14:
+                case 14: // Obstacle Count
                     game.ObstacleCount = setting.numValue;
                     break;
-                case 15:
+                case 15: // Turn Delay
                     game.turnDelay = setting.numValue;
                     break;
-                case 16:
+                case 16: // Replacement Method
                     ai.replacementMethod = setting.numValue;
                     break;
             }
         }
+
+        // If the obstacle count has been updated then regenerate the battlefield
+
         if(oldDebris != game.ObstacleCount){
             game.CreateBattlefield();
         }
