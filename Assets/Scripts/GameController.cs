@@ -113,9 +113,9 @@ public class GameController : MonoBehaviour
 
         // Toggle the menu if the player presses escape
 
-        if(Input.GetKeyDown("escape")){
-            menu.SetActive(!menu.active);
-            UI.SetActive(!UI.active);
+        if(Input.GetKeyDown("space")){
+            menu.SetActive(!menu.activeSelf);
+            UI.SetActive(!UI.activeSelf);
         }
     }
 
