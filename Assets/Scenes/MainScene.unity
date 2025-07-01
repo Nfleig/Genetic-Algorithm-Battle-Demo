@@ -4464,6 +4464,7 @@ MonoBehaviour:
   ZoomSpeed: 25
   MinZoomDistance: 10
   MaxZoomDistance: 50
+  BoundingBoxSize: {x: 100, y: 100}
 --- !u!4 &1009711734
 Transform:
   m_ObjectHideFlags: 0
