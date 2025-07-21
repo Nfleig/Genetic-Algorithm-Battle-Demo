@@ -29,7 +29,7 @@ public class FighterController : MonoBehaviour
     private bool clicked = false;
     private GameObject[] attackTargets;
     private GameObject statLabel;
-    private GameObject camera;
+    private GameObject cameraObject;
     private float deathTimer;
     private float attackTimer;
     private Vector2 originalPosition;
@@ -75,7 +75,7 @@ public class FighterController : MonoBehaviour
         
         line = GetComponent<LineRenderer>();
         statLabel = transform.GetChild(0).gameObject;
-        camera = GameObject.FindWithTag("Camera");
+        cameraObject = GameObject.FindWithTag("Camera");
     }
 
     /*
@@ -86,7 +86,7 @@ public class FighterController : MonoBehaviour
         // If the text is showing then rotate it towards the camera
 
         if(textVisible || clicked){
-            statLabel.transform.eulerAngles = new Vector3(40, camera.transform.eulerAngles.y, 0);
+            statLabel.transform.eulerAngles = new Vector3(40, cameraObject.transform.eulerAngles.y, 0);
             statLabel.GetComponent<TextMesh>().text = "Health: " + health + "\nDamage: " + damage + "\nArmor: " + armor;
         }
 

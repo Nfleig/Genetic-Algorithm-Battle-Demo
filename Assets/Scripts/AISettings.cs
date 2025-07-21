@@ -5,6 +5,25 @@ using UnityEngine.UI;
 
 public class AISettings : MonoBehaviour
 {
+    public enum SettingID
+    {
+        Agression,
+        LethalDamageWeight,
+        ExtraDamageWeight,
+        EnemyExtraDamageWeight,
+        DistanceWeight,
+        UsePathfinding,
+        Generations,
+        PopulationSize,
+        MutationChance,
+        Families,
+        SelectionMethod,
+        FighterCount,
+        DefenderCount,
+        ObstacleCount,
+        TurnDelay,
+        ReplacementMethod
+    }
     // Public Properties
     public AI ai;
     public GameController game;
@@ -32,53 +51,54 @@ public class AISettings : MonoBehaviour
         int oldDebris = game.ObstacleCount;
         foreach(Setting setting in settings){
             switch(setting.ID){
-                case 1: // Agressiveness
-                    ai.agressiveness = setting.value;
+                case SettingID.Agression:
+                    ai.damageDealtWeight = setting.value;
+                    ai.damageTakenWeight = 1 / setting.value;
                     break;
-                case 2: // Lethal Damage Weight
-                    ai.LethalDamageWeight = setting.value;
+                case SettingID.LethalDamageWeight:
+                    ai.lethalDamageWeight = setting.value;
                     break;
-                case 3: // Extra Damage Weight
-                    ai.ExtraDamageWeight = setting.value;
+                case SettingID.ExtraDamageWeight:
+                    ai.extraDamageWeight = setting.value;
                     break;
-                case 4: // Enemy Extra Damage Weight
-                    ai.EnemyExtraDamageWeight = setting.value;
+                case SettingID.EnemyExtraDamageWeight:
+                    ai.enemyExtraDamageWeight = setting.value;
                     break;
-                case 5: // Distance Weight
+                case SettingID.DistanceWeight:
                     ai.distanceWeight = setting.value;
                     break;
-                case 6: // Use Pathfinding
+                case SettingID.UsePathfinding:
                     ai.usePathfinding = setting.boolValue;
                     break;
-                case 7: // Generations
+                case SettingID.Generations:
                     ai.generations = setting.numValue;
                     break;
-                case 8: // Population Size
+                case SettingID.PopulationSize:
                     ai.populationSize = setting.numValue;
                     break;
-                case 9: // Mutate chance
-                    ai.mutateChance = setting.value;
+                case SettingID.MutationChance:
+                    ai.mutationChance = setting.value;
                     break;
-                case 10: // Families
+                case SettingID.Families:
                     ai.families = setting.numValue;
                     break;
-                case 11: // Selection Method
-                    ai.selectionMethod = setting.numValue;
+                case SettingID.SelectionMethod:
+                    ai.selectionMethod = (AI.SelectionMethod) setting.numValue;
                     break;
-                case 12: // Fighter Count
+                case SettingID.FighterCount:
                     game.fighterCount = setting.numValue;
                     break;
-                case 13: // Defender Count
+                case SettingID.DefenderCount:
                     game.defenderCount = setting.numValue;
                     break;
-                case 14: // Obstacle Count
+                case SettingID.ObstacleCount:
                     game.ObstacleCount = setting.numValue;
                     break;
-                case 15: // Turn Delay
+                case SettingID.TurnDelay:
                     game.turnDelay = setting.numValue;
                     break;
-                case 16: // Replacement Method
-                    ai.replacementMethod = setting.numValue;
+                case SettingID.ReplacementMethod:
+                    ai.replacementMethod = (AI.ReplacementMethod) setting.numValue;
                     break;
             }
         }

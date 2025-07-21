@@ -12,15 +12,15 @@ public class CameraController : MonoBehaviour
     public Vector2 BoundingBoxSize;
 
     // Private Properties
-    private Camera camera;
+    private Camera cameraObject;
     private bool _isClicking;
     private float rotX = 50;
 
 
     void Awake()
     {
-        camera = Camera.main;
-        rotX = camera.transform.eulerAngles.x;
+        cameraObject = Camera.main;
+        rotX = cameraObject.transform.eulerAngles.x;
     }
 
     /*
@@ -77,7 +77,7 @@ public class CameraController : MonoBehaviour
 
             // Apply the camera's vertical rotation to the camera itself
 
-            camera.transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, 0);
+            cameraObject.transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, 0);
         }
 
         // Get the scrollwheel input
@@ -86,12 +86,12 @@ public class CameraController : MonoBehaviour
         
         // Calculate the distance that the camera is scrolled in
 
-        float distance = Vector3.Distance(transform.position, camera.transform.position);
+        float distance = Vector3.Distance(transform.position, cameraObject.transform.position);
         
         // If the camera is not too zoomed in or out then zoom the camera
 
         if(!((distance < MinZoomDistance && scroll > 0f) || (distance > MaxZoomDistance && scroll < 0f))){
-            camera.transform.position += camera.transform.forward * scroll * 5;
+            cameraObject.transform.position += cameraObject.transform.forward * scroll * 5;
         }
 
     }

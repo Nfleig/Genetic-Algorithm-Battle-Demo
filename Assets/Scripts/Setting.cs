@@ -6,8 +6,8 @@ using System;
 
 public class Setting : MonoBehaviour
 {
-    public int ID;
-    public string name;
+    public AISettings.SettingID ID;
+    public string settingName;
     public string inputString;
     public float value;
     public bool boolValue;
@@ -30,17 +30,17 @@ public class Setting : MonoBehaviour
     {
         if(slider){
             value = slider.value;
-            label.text = name + ":\n" + value;
+            label.text = settingName + ":\n" + value;
         }
         else if(toggle){
             boolValue = toggle.isOn;
         }
         else if(input){
             try{
-                numValue = System.Convert.ToInt32(input.text);
+                numValue = Convert.ToInt32(input.text);
                 errorText.SetActive(false);
             }
-            catch(FormatException e){
+            catch(FormatException){
                 errorText.SetActive(true);
             }
         }

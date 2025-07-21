@@ -17,7 +17,7 @@ public class AILabel : MonoBehaviour
     void Update()
     {
         string team = "Blue";
-        if(ai.Enemy){
+        if(ai.enemy){
             team = "Orange";
         }
         string data = team + " AI:\n" + ai.getData();

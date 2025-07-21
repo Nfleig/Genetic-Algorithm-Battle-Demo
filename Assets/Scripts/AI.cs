@@ -5,6 +5,21 @@ using UnityEngine.AI;
 
 public class AI : MonoBehaviour
 {
+
+    public enum SelectionMethod
+    {
+        Roulette,
+        Random,
+        BestFit
+    }
+
+    public enum ReplacementMethod
+    {
+        WeakestParent,
+        BothParents,
+        WeakestGene
+    }
+
     /*
         This class represents one chromosome and includes all of the data and methods that it needs
     */
@@ -22,7 +37,8 @@ public class AI : MonoBehaviour
         private AI ai;
 
         //Initializer assigns all of the gene's data and then generates a random genotype
-        public Gene(List<FighterController> fighters, List<FighterController> defenders, AI ai){
+        public Gene(List<FighterController> fighters, List<FighterController> defenders, AI ai)
+        {
             this.fighters = fighters;
             this.defenders = defenders;
             this.ai = ai;
@@ -33,7 +49,8 @@ public class AI : MonoBehaviour
         }
 
         //Generates a new random genotype
-        public void Reset(){
+        public void Reset()
+        {
             genotype = new List<FighterController>();
             fitness = 0;
             Randomize();
@@ -49,19 +66,22 @@ public class AI : MonoBehaviour
 
             where the first fighter would fight the first defender, and so on
         */
-        public void Randomize(){
+        public void Randomize()
+        {
             int attempts = 0;
             bool attacker = true;
             matchups = 0;
 
             //These two methods create new lists of the fighters and defenders that arent attached to the main AI's lists (so that they can have units removed without destroying the program)
             List<FighterController> tempFighters = new List<FighterController>();
-            foreach(FighterController fighter in fighters){
+            foreach (FighterController fighter in fighters)
+            {
                 tempFighters.Add(fighter);
             }
 
             List<FighterController> tempDefenders = new List<FighterController>();
-            foreach(FighterController fighter in defenders){
+            foreach (FighterController fighter in defenders)
+            {
                 tempDefenders.Add(fighter);
             }
 
@@ -69,10 +89,12 @@ public class AI : MonoBehaviour
             MoreAttackers = fighters.Count > defenders.Count;
 
             //Assigns matchups to be the amount of pairs of units that will fight eachother
-            if(MoreAttackers){
+            if (MoreAttackers)
+            {
                 matchups = defenders.Count;
             }
-            else{
+            else
+            {
                 matchups = fighters.Count;
             }
 
@@ -85,41 +107,52 @@ public class AI : MonoBehaviour
 
                 These rules mean that the genotype is in the structure defined above with the extra units just being tacked onto the end of the genotype
             */
-            while(genotype.Count < (fighters.Count + defenders.Count) && attempts < 100){
+            while (genotype.Count < (fighters.Count + defenders.Count) && attempts < 100)
+            {
                 FighterController newFighter;
-                if(genotype.Count < matchups * 2){
-                    if(attacker){
-                        int randomID = (int) (Random.value * (tempFighters.Count - 1));
+                if (genotype.Count < matchups * 2)
+                {
+                    if (attacker)
+                    {
+                        int randomID = (int)(Random.value * (tempFighters.Count - 1));
                         newFighter = tempFighters[randomID];
                     }
-                    else{
-                        int randomID = (int) (Random.value * (tempDefenders.Count - 1));
+                    else
+                    {
+                        int randomID = (int)(Random.value * (tempDefenders.Count - 1));
                         newFighter = tempDefenders[randomID];
                     }
                     genotype.Add(newFighter);
-                    if((newFighter.defender && !ai.Enemy) || (!newFighter.defender && ai.Enemy)){
+                    if ((newFighter.defender && !ai.enemy) || (!newFighter.defender && ai.enemy))
+                    {
                         tempDefenders.Remove(newFighter);
                     }
-                    else{
+                    else
+                    {
                         tempFighters.Remove(newFighter);
                     }
                     attacker = !attacker;
                 }
-                else{
+                else
+                {
                     //If there are not an equal amount of fighters and defenders then the extra units will just be put on the end
-                    if(MoreAttackers){
-                        int randomID = (int) (Random.value * (tempFighters.Count - 1));
+                    if (MoreAttackers)
+                    {
+                        int randomID = (int)(Random.value * (tempFighters.Count - 1));
                         newFighter = tempFighters[randomID];
                     }
-                    else{
-                        int randomID = (int) (Random.value * (tempDefenders.Count - 1));
+                    else
+                    {
+                        int randomID = (int)(Random.value * (tempDefenders.Count - 1));
                         newFighter = tempDefenders[randomID];
                     }
                     genotype.Add(newFighter);
-                    if((newFighter.defender && !ai.Enemy) || (!newFighter.defender && ai.Enemy)){
+                    if ((newFighter.defender && !ai.enemy) || (!newFighter.defender && ai.enemy))
+                    {
                         tempDefenders.Remove(newFighter);
                     }
-                    else{
+                    else
+                    {
                         tempFighters.Remove(newFighter);
                     }
                 }
@@ -128,12 +161,14 @@ public class AI : MonoBehaviour
         }
 
         //This method mutates a genotype by swiching two units (making sure that they are the same type so as not to destroy the genotype structure)
-        public void Mutate(){
+        public void Mutate()
+        {
             int randomGene1 = 0;
             int randomGene2 = 0;
-            while(randomGene1 != randomGene2 && (genotype[randomGene1].defender = genotype[randomGene2].defender)){
-                randomGene1 = (int) (Random.value * genotype.Count);
-                randomGene2 = (int) (Random.value * genotype.Count);
+            while (randomGene1 != randomGene2 && (genotype[randomGene1].defender = genotype[randomGene2].defender))
+            {
+                randomGene1 = (int)(Random.value * genotype.Count);
+                randomGene2 = (int)(Random.value * genotype.Count);
             }
             FighterController temp = genotype[randomGene1];
             genotype[randomGene1] = genotype[randomGene2];
@@ -145,44 +180,53 @@ public class AI : MonoBehaviour
             This function determines how effective a gene is at achieving this algorithm's goal (which at it's core is to maximize damage output while minimizing damage intake)
             A majority of the settings that affect how the AI behaves do it by modifying this fitness function to give certain variables (like the distance or damage output) more weight
         */
-        public void CalculateFitness(){
+        public void CalculateFitness()
+        {
             double attackDamage = 0;
             double defenceDamage = 0;
             float totalDistance = 0;
             //Calculates attack and defence damage done by pairs of units fighting eachother as well as the distance each unit has to travel
-            for(int i = 0; i < matchups - 1; i += 2){
+            for (int i = 0; i < matchups - 1; i += 2)
+            {
                 attackDamage += CalculateAttackDamage(genotype[i], genotype[i + 1]);
                 defenceDamage += CalculateAttackDamage(genotype[i + 1], genotype[i]);
                 totalDistance += CalculateDistance(genotype[i], genotype[i + 1].gameObject, ai.usePathfinding);
             }
 
             //Calculates any extra damage done by units that arent assigned to fight another unit and instead will fight the enemy nexus
-            for(int i = matchups; i < genotype.Count; i++){
-                if(MoreAttackers){
-                    attackDamage += genotype[i].damage * ai.ExtraDamageWeight;
+            for (int i = matchups; i < genotype.Count; i++)
+            {
+                if (MoreAttackers)
+                {
+                    attackDamage += genotype[i].damage * ai.extraDamageWeight;
 
                     //determines the distance as well
                     totalDistance += CalculateDistance(genotype[i], ai.enemyNexus.gameObject, ai.usePathfinding);
                 }
-                else{
-                    defenceDamage += genotype[i].damage * ai.EnemyExtraDamageWeight;
+                else
+                {
+                    defenceDamage += genotype[i].damage * ai.enemyExtraDamageWeight;
                 }
             }
 
             //The actual fitness equation
-            fitness = (ai.agressiveness * attackDamage) - ((1 / ai.agressiveness) * defenceDamage) - (ai.distanceWeight * totalDistance);
+            fitness = (ai.damageDealtWeight * attackDamage) - (ai.damageTakenWeight * defenceDamage) - (ai.distanceWeight * totalDistance);
 
             //The matchups value tells the AI how many sets of fighters and defenders there are (which helps when actually executing the instructions)
             matchups = 0;
-            for(int i = 0; i < genotype.Count - 1; i++){
-                if((!genotype[i].defender && genotype[i + 1].defender && !ai.Enemy) || (genotype[i].defender && !genotype[i + 1].defender && ai.Enemy)){
+            for (int i = 0; i < genotype.Count - 1; i++)
+            {
+                if ((!genotype[i].defender && genotype[i + 1].defender && !ai.enemy) || (genotype[i].defender && !genotype[i + 1].defender && ai.enemy))
+                {
                     matchups++;
                 }
             }
         }
 
-        public float CalculateDistance(FighterController attacker, GameObject defender, bool usePathfinding){
-            if(usePathfinding){
+        public float CalculateDistance(FighterController attacker, GameObject defender, bool usePathfinding)
+        {
+            if (usePathfinding)
+            {
                 //This algorithm uses the NavMeshAgents within the units to find the length of the path that it will take
                 //This method was extremely inefficient so I made it optional
                 NavMeshAgent agent = attacker.gameObject.GetComponent<NavMeshAgent>();
@@ -190,32 +234,38 @@ public class AI : MonoBehaviour
                 NavMeshPath path = new NavMeshPath();
                 agent.CalculatePath(target, path);
                 float distance = 0;
-                for(int i = 1; i < path.corners.Length; i++){
+                for (int i = 1; i < path.corners.Length; i++)
+                {
                     distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
                 }
                 return distance;
             }
-            else{
+            else
+            {
                 //This method just uses the distance between the two units which is way more efficient but slightly less accurate if there are obsticles that the unit needs to avoid
                 return Vector3.Distance(attacker.gameObject.transform.position, defender.transform.position);
             }
         }
 
-        public double CalculateAttackDamage(FighterController attacker, FighterController defender){
+        public double CalculateAttackDamage(FighterController attacker, FighterController defender)
+        {
             //This is the equation for the damage that a unit takes. Each armor value offers a 5% damage reduction
             double damage = (attacker.damage - (attacker.damage * (defender.armor / 20)));
-            
+
             //This increases the value of the damage if it kills the unit
-            if(damage >= defender.health){
-                damage *= ai.LethalDamageWeight;
+            if (damage >= defender.health)
+            {
+                damage *= ai.lethalDamageWeight;
             }
             return damage;
         }
 
         //This method prints out the contents and fitness of a gene
-        public string toString(){
+        public string toString()
+        {
             string text = "";
-            foreach(FighterController fighter in genotype){
+            foreach (FighterController fighter in genotype)
+            {
                 text += (fighter + ", ");
             }
             text += ("\nFitness: " + fitness);
@@ -230,22 +280,23 @@ public class AI : MonoBehaviour
     public Nexus enemyNexus;
     public Nexus nexus;
 
-    public bool Enemy;
+    public bool enemy;
 
     //These are all of the different settings for the AI
     public int populationSize;
     public int generations;
     public int GPF;
     public int families;
-    public double mutateChance;
-    public int selectionMethod;
-    public int replacementMethod;
+    public double mutationChance;
+    public SelectionMethod selectionMethod;
+    public ReplacementMethod replacementMethod;
 
     //And these are the different weights that affect the fitness formula
-    public double LethalDamageWeight = 1;
-    public double agressiveness = 1;
-    public double ExtraDamageWeight = 2;
-    public double EnemyExtraDamageWeight = 2;
+    public double lethalDamageWeight = 1;
+    public double damageDealtWeight = 1;
+    public double damageTakenWeight = 1;
+    public double extraDamageWeight = 2;
+    public double enemyExtraDamageWeight = 2;
     public double distanceWeight = 1;
     public bool usePathfinding = false;
 
@@ -341,40 +392,59 @@ public class AI : MonoBehaviour
 
             This selection method is much more likely to pick genes with higher fitness, but it still gives the weaker genes a chance to be a parent which helps bring diversity to the genepool
         */
+
+        /*
+         * Issues:
+         *      - Genes can be selected multiple times at once
+         *      - Genes can be replaced by children before they've reproduced, allowing the children to reproduce for free
+         */
         double sumFitness = 0;
         genes.Sort(CompareFitnesses);
-        foreach(Gene gene in genes){
+        
+        foreach (Gene gene in genes)
+        {
             sumFitness += gene.fitness;
         }
+
         Gene[] parentGenes = new Gene[families * 2];
-        for(int i = 0; i < parentGenes.Length; i++){
-            if(selectionMethod == 0){
+        
+        for (int i = 0; i < parentGenes.Length; i++)
+        {
+            if (selectionMethod == SelectionMethod.Roulette)
+            {
                 double target = sumFitness * Random.value;
                 int index = genes.Count - 1;
                 double partialsum = 0;
-                while((target > 0 && partialsum < target) || (target < 0 && partialsum > target) && index >= 0){
+                while ((target > 0 && partialsum < target) || (target < 0 && partialsum > target) && index >= 0)
+                {
                     partialsum += genes[index].fitness;
-                    if((target > 0 && partialsum >= target) || (target <= 0 && partialsum <= target)){
+                    if ((target > 0 && partialsum >= target) || (target <= 0 && partialsum <= target))
+                    {
                         parentGenes[i] = genes[index];
                     }
                     index--;
                 }
             }
-            else if(selectionMethod == 1){
-                int randomID = (int) (Random.value * (genes.Count - 1));
+            else if (selectionMethod == SelectionMethod.Random)
+            {
+                int randomID = (int)(Random.value * (genes.Count - 1));
                 parentGenes[i] = genes[randomID];
             }
-            else{
+            else
+            {
                 //If the families value is greater than the population size this conditional prevents the game from crashing
-                if(i >= genes.Count - 1){
+                if (i >= genes.Count - 1)
+                {
                     parentGenes[i] = genes[0];
                 }
-                else{
+                else
+                {
                     parentGenes[i] = genes[genes.Count - (i + 1)];
                 }
             }
         }
-        for(int i = 0; i < parentGenes.Length; i += 2){
+        for(int i = 0; i < parentGenes.Length; i += 2)
+        {
             //print(parentGenes[i] + " " + parentGenes[i + 1]);
             breedParents(parentGenes[i], parentGenes[i + 1], i);
         }
@@ -388,78 +458,113 @@ public class AI : MonoBehaviour
 
             The second parent will give their genotype from the beginning to point A to the second child, from point A to point B to the first child, and from point B to the end to the second child.
         */
-        if(parent1.genotype.Count > 3){
+        
+        /*
+         * Issues:
+         *      - Method of copying genetic material to children is super unsafe. Could destroy genetic structure
+         *      - Parents don't actually get replaced in the WEAKEST_PARENT and BOTH_PARENTS replacement methods
+         */
+        if (parent1.genotype.Count > 3)
+        {
             int pointA = 0;
             int pointB = 0;
-            while(pointA == pointB){ 
-                pointA = (int) (Random.value * (parent1.genotype.Count - 1));
-                pointB = (int) (Random.value * (parent1.genotype.Count - pointA - 1)) + pointA;
+            while (pointA == pointB)
+            {
+                pointA = (int)(Random.value * (parent1.genotype.Count - 1));
+                pointB = (int)(Random.value * (parent1.genotype.Count - pointA - 1)) + pointA;
             }
-            Gene[] children = new Gene[2];
-            children[0] = new Gene(fighters, defenders, this);
-            children[1] = new Gene(fighters, defenders, this);
-            foreach(Gene child in children){
-                child.genotype = new List<FighterController>();
+            Gene child1 = new Gene(fighters, defenders, this);
+            Gene child2 = new Gene(fighters, defenders, this);
+
+            child1.genotype = new List<FighterController>();
+            child2.genotype = new List<FighterController>();
+
+            for (int i = 0; i < pointA; i++)
+            {
+                child1.genotype.Add(parent1.genotype[i]);
+                child2.genotype.Add(parent2.genotype[i]);
             }
-            for(int i = 0; i < pointA; i++){
-                children[0].genotype.Add(parent1.genotype[i]);
-                children[1].genotype.Add(parent2.genotype[i]);
+            for (int i = pointA; i < pointB; i++)
+            {
+                child1.genotype.Add(parent2.genotype[i]);
+                child2.genotype.Add(parent1.genotype[i]);
             }
-            for(int i = pointA; i < pointB; i++){
-                children[0].genotype.Add(parent2.genotype[i]);
-                children[1].genotype.Add(parent1.genotype[i]);
-            }
-            for(int i = pointB; i < parent1.genotype.Count; i++){
-                children[0].genotype.Add(parent1.genotype[i]);
-                children[1].genotype.Add(parent2.genotype[i]);
+            for (int i = pointB; i < parent1.genotype.Count; i++)
+            {
+                child1.genotype.Add(parent1.genotype[i]);
+                child2.genotype.Add(parent2.genotype[i]);
             }
 
             //This conditional statement will then potentially mutate one of the children as described earlier.
-            if(Random.value <= mutateChance){
-                if(Random.value <= 0.5){
-                    children[0].Mutate();
+            if (Random.value <= mutationChance)
+            {
+                if (Random.value <= 0.5)
+                {
+                    child1.Mutate();
                 }
-                else{
-                    children[1].Mutate();
+                else
+                {
+                    child2.Mutate();
                 }
             }
 
             //Then if any of the children are stronger than any of the parents, the stronger children will replace the weaker parents.
-            children[0].CalculateFitness();
-            children[1].CalculateFitness();
-            if(replacementMethod == 0){
-                foreach(Gene child in children){
-                    if(child.fitness > parent1.fitness && parent1 != children[0]){
-                        parent1 = child;
-                    }
-                    else if(child.fitness > parent2.fitness){
-                        parent2 = child;
-                    }
+            child1.CalculateFitness();
+            child2.CalculateFitness();
+            if (replacementMethod == ReplacementMethod.WeakestParent)
+            {
+                if (child1.fitness > parent1.fitness)
+                {
+                    parent1 = child1;
                 }
-            }
-            else if(replacementMethod == 1){
-                parent1 = children[0];
-                parent2 = children[1];
-            }
-            else{
-                foreach(Gene child in children){
-                    if(child.fitness > genes[familyNumber].fitness && genes[familyNumber] != children[0]){
-                        genes[familyNumber] = child;
-                    }
-                    else if(child.fitness > genes[familyNumber + 1].fitness){
-                        genes[familyNumber + 1] = child;
-                    }
+                else if (child1.fitness > parent2.fitness)
+                {
+                    parent2 = child1;
                 }
-                
-            }
 
+                if (child2.fitness > parent1.fitness && parent1 != child2)
+                {
+                    parent1 = child2;
+                }
+
+                if (child2.fitness > parent2.fitness && parent2 != child2)
+                {
+                    parent2 = child2;
+                }
+            }
+            else if (replacementMethod == ReplacementMethod.BothParents)
+            {
+                parent1 = child2;
+                parent2 = child2;
+            }
+            else
+            {
+
+                if (child1.fitness > genes[familyNumber].fitness)
+                {
+                    genes[familyNumber] = child1;
+                }
+                else if (child1.fitness > genes[familyNumber + 1].fitness)
+                {
+                    genes[familyNumber + 1] = child1;
+                }
+
+                if (child1.fitness > genes[familyNumber].fitness && genes[familyNumber] != child1)
+                {
+                    genes[familyNumber] = child1;
+                }
+                else if (child1.fitness > genes[familyNumber + 1].fitness)
+                {
+                    genes[familyNumber + 1] = child1;
+                }
+            }
         }
     }
 
     //This method is called by every unit as they are created and it will add them to their respective list according to which side they're on
     public void AddFighter(FighterController fighter, bool isDefender)
     {
-        if(isDefender != Enemy)
+        if(isDefender != enemy)
         {
             if(fighter != null)
             {
@@ -479,14 +584,14 @@ public class AI : MonoBehaviour
 
     //This method is called by every unit as they die and it will remove them from their respective list
     public void RemoveFighter(FighterController fighter, bool isDefender){
-        if((isDefender && !Enemy) || (!isDefender && Enemy)){
+        if((isDefender && !enemy) || (!isDefender && enemy)){
             defenders.Remove(fighter);
             foreach(Gene gene in genes){
                 gene.defenders.Remove(fighter);
             }
             //print("Removed defender: " + fighter);
         }
-        else if((!isDefender && !Enemy) || (isDefender && Enemy)){
+        else if((!isDefender && !enemy) || (isDefender && enemy)){
             fighters.Remove(fighter);
             foreach(Gene gene in genes){
                 gene.fighters.Remove(fighter);
