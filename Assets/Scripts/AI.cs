@@ -68,11 +68,7 @@ public class AI : MonoBehaviour
         */
         public void Randomize()
         {
-            int attempts = 0;
-            bool attacker = true;
-            matchups = 0;
-
-            //These two methods create new lists of the fighters and defenders that arent attached to the main AI's lists (so that they can have units removed without destroying the program)
+            // Create temporary lists of fighters and defenders
             List<FighterController> tempFighters = new List<FighterController>();
             foreach (FighterController fighter in fighters)
             {
@@ -80,13 +76,15 @@ public class AI : MonoBehaviour
             }
 
             List<FighterController> tempDefenders = new List<FighterController>();
-            foreach (FighterController fighter in defenders)
+            foreach (FighterController defender in defenders)
             {
-                tempDefenders.Add(fighter);
+                tempDefenders.Add(defender);
             }
 
             //Determines whether there are more fighters or defenders
             MoreAttackers = fighters.Count > defenders.Count;
+
+            matchups = 0;
 
             //Assigns matchups to be the amount of pairs of units that will fight eachother
             if (MoreAttackers)
@@ -107,72 +105,37 @@ public class AI : MonoBehaviour
 
                 These rules mean that the genotype is in the structure defined above with the extra units just being tacked onto the end of the genotype
             */
-            while (genotype.Count < (fighters.Count + defenders.Count) && attempts < 100)
+            while (tempFighters.Count > 0 || tempDefenders.Count > 0)
             {
-                FighterController newFighter;
-                if (genotype.Count < matchups * 2)
+                if (tempDefenders.Count == 0 || (tempFighters.Count > 0 && genotype.Count % 2 == 0))
                 {
-                    if (attacker)
-                    {
-                        int randomID = (int)(Random.value * (tempFighters.Count - 1));
-                        newFighter = tempFighters[randomID];
-                    }
-                    else
-                    {
-                        int randomID = (int)(Random.value * (tempDefenders.Count - 1));
-                        newFighter = tempDefenders[randomID];
-                    }
-                    genotype.Add(newFighter);
-                    if ((newFighter.defender && !ai.enemy) || (!newFighter.defender && ai.enemy))
-                    {
-                        tempDefenders.Remove(newFighter);
-                    }
-                    else
-                    {
-                        tempFighters.Remove(newFighter);
-                    }
-                    attacker = !attacker;
+                    int randomID = (int)(Random.value * (tempFighters.Count - 1));
+                    genotype.Add(tempFighters[randomID]);
+                    tempFighters.RemoveAt(randomID);
+                    continue;
                 }
-                else
+
+                if (tempFighters.Count == 0 || (tempDefenders.Count > 0 && genotype.Count % 2 == 1))
                 {
-                    //If there are not an equal amount of fighters and defenders then the extra units will just be put on the end
-                    if (MoreAttackers)
-                    {
-                        int randomID = (int)(Random.value * (tempFighters.Count - 1));
-                        newFighter = tempFighters[randomID];
-                    }
-                    else
-                    {
-                        int randomID = (int)(Random.value * (tempDefenders.Count - 1));
-                        newFighter = tempDefenders[randomID];
-                    }
-                    genotype.Add(newFighter);
-                    if ((newFighter.defender && !ai.enemy) || (!newFighter.defender && ai.enemy))
-                    {
-                        tempDefenders.Remove(newFighter);
-                    }
-                    else
-                    {
-                        tempFighters.Remove(newFighter);
-                    }
+                    int randomID = (int)(Random.value * (tempDefenders.Count - 1));
+                    genotype.Add(tempDefenders[randomID]);
+                    tempDefenders.RemoveAt(randomID);
                 }
-                attempts++;
             }
         }
 
         //This method mutates a genotype by swiching two units (making sure that they are the same type so as not to destroy the genotype structure)
         public void Mutate()
         {
-            int randomGene1 = 0;
-            int randomGene2 = 0;
-            while (randomGene1 != randomGene2 && (genotype[randomGene1].defender = genotype[randomGene2].defender))
+            int randomID1 = (int)(Random.value * genotype.Count);
+            int randomID2 = 0;
+            while (randomID1 != randomID2 && (genotype[randomID1].defender = genotype[randomID2].defender))
             {
-                randomGene1 = (int)(Random.value * genotype.Count);
-                randomGene2 = (int)(Random.value * genotype.Count);
+                randomID2 = (int)(Random.value * genotype.Count);
             }
-            FighterController temp = genotype[randomGene1];
-            genotype[randomGene1] = genotype[randomGene2];
-            genotype[randomGene2] = temp;
+            FighterController temp = genotype[randomID1];
+            genotype[randomID1] = genotype[randomID2];
+            genotype[randomID2] = temp;
         }
 
         /*
