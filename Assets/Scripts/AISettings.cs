@@ -7,7 +7,8 @@ public class AISettings : MonoBehaviour
 {
     public enum SettingID
     {
-        Agression,
+        DamageDealtWeight,
+        DamageTakenWeight,
         LethalDamageWeight,
         ExtraDamageWeight,
         EnemyExtraDamageWeight,
@@ -51,9 +52,11 @@ public class AISettings : MonoBehaviour
         int oldDebris = game.ObstacleCount;
         foreach(Setting setting in settings){
             switch(setting.ID){
-                case SettingID.Agression:
+                case SettingID.DamageDealtWeight:
                     ai.damageDealtWeight = setting.value;
-                    ai.damageTakenWeight = 1 / setting.value;
+                    break;
+                case SettingID.DamageTakenWeight:
+                    ai.damageTakenWeight = setting.value;
                     break;
                 case SettingID.LethalDamageWeight:
                     ai.lethalDamageWeight = setting.value;
