@@ -304,7 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 6
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -1155,7 +1155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 2
-  name: Lethal Damage Weight
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -1327,7 +1327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 16
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -1433,7 +1433,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 10
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -2483,7 +2483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 3
-  name: Extra Damage Weight
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -3971,7 +3971,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 12
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -4575,7 +4575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 11
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -5382,7 +5382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 9
-  name: Mutate Chance
+  settingName: 
   inputString: 
   value: 0.3
   boolValue: 0
@@ -5821,7 +5821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 8
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -6310,7 +6310,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 14
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -6667,7 +6667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 13
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -6823,6 +6823,11 @@ PrefabInstance:
     - target: {fileID: -4101165261796229271, guid: 7ad447d7a755d6b43a9304e5e19aec8b,
         type: 3}
       propertyPath: Enemy
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4101165261796229271, guid: 7ad447d7a755d6b43a9304e5e19aec8b,
+        type: 3}
+      propertyPath: enemy
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -4101165261796229271, guid: 7ad447d7a755d6b43a9304e5e19aec8b,
@@ -7489,7 +7494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 1
-  name: Aggression
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -8594,7 +8599,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 15
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -8698,7 +8703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 5
-  name: Distance Weight
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -9513,7 +9518,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 4
-  name: Enemy Extra Damage Weight
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0
@@ -10050,7 +10055,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 7
-  name: 
+  settingName: 
   inputString: 
   value: 0
   boolValue: 0

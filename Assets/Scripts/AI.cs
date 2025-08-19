@@ -263,12 +263,17 @@ public class AI : MonoBehaviour
     public double distanceWeight = 1;
     public bool usePathfinding = false;
 
+    private bool isActive = false;
+    private bool isStarting = true;
+    private int currentGeneration = 0;
+
     void Awake() 
     {
         //Initializes all of the lists
         fighters = new List<FighterController>();
         defenders = new List<FighterController>();
         genes = new List<Gene>();
+        families = Mathf.Min(families, populationSize / 2);
         print("Should be initialized now");
     }
 
@@ -286,25 +291,21 @@ public class AI : MonoBehaviour
     }
 
     public void runAI(){
-        active = true;
+        isActive = true;
     }
 
     
 
-    bool active = false;
-    bool start = true;
-    int index = 0;
-
     void Update()
     {
-        if(start){
+        if(isStarting){
             //Initializes a randomized initial population of genes
             while(genes.Count < populationSize){
                 genes.Add(new Gene(fighters, defenders, this));
             }
-            start = false;
+            isStarting = false;
         }
-        if(active){
+        if(isActive){
             foreach(Gene gene in genes){
                 //Reset all of the genes each round
                 gene.fighters = fighters;
@@ -315,12 +316,12 @@ public class AI : MonoBehaviour
             Gene bestGene;
             bool firstGen = true;
             //Runs each generation
-            if(index < generations){
+            if(currentGeneration < generations){
                 //Limits the amount of generations that will be run per frame according to the GPF value
-                while(index < generations && (index % GPF != 0 || firstGen)){
+                while(currentGeneration < generations && (currentGeneration % GPF != 0 || firstGen)){
                     //print("Generation " + (index + 1) + ":");
                     NewGeneration();
-                    index++;
+                    currentGeneration++;
                     firstGen = false;
                 }
             }
@@ -340,13 +341,14 @@ public class AI : MonoBehaviour
                         fighter.Fight(enemyNexus);
                     }
                 }
-                index = 0;
-                active = false;
+                currentGeneration = 0;
+                isActive = false;
             }
         }
     }
 
-    void NewGeneration(){
+    void NewGeneration()
+    {
         /*
             Uses Roulette selection to choose parents to breed.
             This selection method takes the sum of all of the fitnesses and multiplies it by a random value between 0 and 1 to get a target value. 
@@ -355,23 +357,19 @@ public class AI : MonoBehaviour
 
             This selection method is much more likely to pick genes with higher fitness, but it still gives the weaker genes a chance to be a parent which helps bring diversity to the genepool
         */
-
-        /*
-         * Issues:
-         *      - Genes can be selected multiple times at once
-         *      - Genes can be replaced by children before they've reproduced, allowing the children to reproduce for free
-         */
         double sumFitness = 0;
         genes.Sort(CompareFitnesses);
-        
+        List<Gene> newGenes = new List<Gene>();
+
         foreach (Gene gene in genes)
         {
             sumFitness += gene.fitness;
+            newGenes.Add(gene);
         }
 
-        Gene[] parentGenes = new Gene[families * 2];
-        
-        for (int i = 0; i < parentGenes.Length; i++)
+        int[] parentGeneIDs = new int[families * 2];
+
+        for (int i = 0; i < parentGeneIDs.Length; i++)
         {
             if (selectionMethod == SelectionMethod.Roulette)
             {
@@ -383,7 +381,7 @@ public class AI : MonoBehaviour
                     partialsum += genes[index].fitness;
                     if ((target > 0 && partialsum >= target) || (target <= 0 && partialsum <= target))
                     {
-                        parentGenes[i] = genes[index];
+                        parentGeneIDs[i] = index;
                     }
                     index--;
                 }
@@ -391,29 +389,22 @@ public class AI : MonoBehaviour
             else if (selectionMethod == SelectionMethod.Random)
             {
                 int randomID = (int)(Random.value * (genes.Count - 1));
-                parentGenes[i] = genes[randomID];
+                parentGeneIDs[i] = randomID;
             }
             else
             {
-                //If the families value is greater than the population size this conditional prevents the game from crashing
-                if (i >= genes.Count - 1)
-                {
-                    parentGenes[i] = genes[0];
-                }
-                else
-                {
-                    parentGenes[i] = genes[genes.Count - (i + 1)];
-                }
+                parentGeneIDs[i] = genes.Count - (i + 1);
             }
         }
-        for(int i = 0; i < parentGenes.Length; i += 2)
+        for (int i = 0; i < parentGeneIDs.Length; i += 2)
         {
             //print(parentGenes[i] + " " + parentGenes[i + 1]);
-            breedParents(parentGenes[i], parentGenes[i + 1], i);
+            breedParents(parentGeneIDs[i], parentGeneIDs[i + 1], i, newGenes);
         }
+        genes = newGenes;
     }
 
-    void breedParents(Gene parent1, Gene parent2, int familyNumber){
+    void breedParents(int parent1ID, int parent2ID, int familyNumber, List<Gene> newGenes){
         /*
             This method creates two offspring from two parents by selecting two points (A and B) in the genotypes of the parents and copying their genotypes to their children as follows:
 
@@ -421,12 +412,9 @@ public class AI : MonoBehaviour
 
             The second parent will give their genotype from the beginning to point A to the second child, from point A to point B to the first child, and from point B to the end to the second child.
         */
-        
-        /*
-         * Issues:
-         *      - Method of copying genetic material to children is super unsafe. Could destroy genetic structure
-         *      - Parents don't actually get replaced in the WEAKEST_PARENT and BOTH_PARENTS replacement methods
-         */
+
+        Gene parent1 = genes[parent1ID];
+        Gene parent2 = genes[parent2ID];
         if (parent1.genotype.Count > 3)
         {
             int pointA = 0;
@@ -478,47 +466,47 @@ public class AI : MonoBehaviour
             {
                 if (child1.fitness > parent1.fitness)
                 {
-                    parent1 = child1;
+                    newGenes[parent1ID] = child1;
                 }
                 else if (child1.fitness > parent2.fitness)
                 {
-                    parent2 = child1;
+                    newGenes[parent2ID] = child1;
                 }
 
                 if (child2.fitness > parent1.fitness && parent1 != child2)
                 {
-                    parent1 = child2;
+                    newGenes[parent1ID] = child2;
                 }
 
                 if (child2.fitness > parent2.fitness && parent2 != child2)
                 {
-                    parent2 = child2;
+                    newGenes[parent2ID] = child2;
                 }
             }
             else if (replacementMethod == ReplacementMethod.BothParents)
             {
-                parent1 = child2;
-                parent2 = child2;
+                newGenes[parent1ID] = child2;
+                newGenes[parent2ID] = child2;
             }
             else
             {
 
                 if (child1.fitness > genes[familyNumber].fitness)
                 {
-                    genes[familyNumber] = child1;
+                    newGenes[familyNumber] = child1;
                 }
                 else if (child1.fitness > genes[familyNumber + 1].fitness)
                 {
-                    genes[familyNumber + 1] = child1;
+                    newGenes[familyNumber + 1] = child1;
                 }
 
                 if (child1.fitness > genes[familyNumber].fitness && genes[familyNumber] != child1)
                 {
-                    genes[familyNumber] = child1;
+                    newGenes[familyNumber] = child1;
                 }
                 else if (child1.fitness > genes[familyNumber + 1].fitness)
                 {
-                    genes[familyNumber + 1] = child1;
+                    newGenes[familyNumber + 1] = child1;
                 }
             }
         }
@@ -565,7 +553,7 @@ public class AI : MonoBehaviour
 
     //This method is called once the game has ended and it will make all remaining units return to their original position
     public void Stop(){
-        active = false;
+        isActive = false;
         foreach(FighterController fighter in fighters){
             fighter.Reset();
         }
@@ -578,10 +566,10 @@ public class AI : MonoBehaviour
         if(genes.Count > 1){
             bestFitness = genes[genes.Count - 1].fitness;
         }
-        if(active){
+        if(isActive){
             state = "Thinking";
         }
-        string data = "State: " + state + "\nGeneration: " + index + "\nBestFitness: " + bestFitness + "\nNexus Health: " + nexus.health;
+        string data = "State: " + state + "\nGeneration: " + currentGeneration + "\nBestFitness: " + bestFitness + "\nNexus Health: " + nexus.health;
         return data;
     }
 }
