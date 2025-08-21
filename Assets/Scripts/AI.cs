@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class AI : MonoBehaviour
 {
@@ -20,15 +19,84 @@ public class AI : MonoBehaviour
         WeakestGene
     }
 
+    public abstract class Attackable
+    {
+        public double health;
+        public int armor;
+        public bool isOrange;
+        public Vector3 position;
+        public Attackable(double health, int armor, bool isOrange, Vector3 position)
+        {
+            this.health = health;
+            this.armor = armor;
+            this.isOrange = isOrange;
+            this.position = position;
+        }
+    }
+
+    public class Fighter : Attackable
+    {
+        public int id;
+        public int damage;
+
+        public Fighter(double health, int damage, int armor, bool isOrange, Vector3 position, int id) : base(health, armor, isOrange, position)
+        {
+            this.damage = damage;
+            this.id = id;
+        }
+
+        public override string ToString()
+        {
+            return "{ " + (isOrange ? "Orange Fighter " : "Blue Fighter ") + id + " }";
+        }
+    }
+
+    public class NexusData : Attackable
+    {
+        public NexusData(double health, bool isOrange, Vector3 position) : base(health, 1, isOrange, position)
+        {
+
+        }
+
+        public void SetHealth(double health)
+        {
+            this.health = health;
+        }
+
+        public override string ToString()
+        {
+            return "{ " + (isOrange ? "Orange Nexus" : "Blue Nexus") + " }";
+        }
+    }
+
+    public struct AttackPair
+    {
+        public Attackable fighter;
+        public Attackable target;
+
+        public AttackPair(Attackable fighter, Attackable target)
+        {
+            this.fighter = fighter;
+            this.target = target;
+        }
+
+        public override string ToString()
+        {
+            return "{ " + fighter.ToString() + " -> " + target.ToString() + " }";
+        }
+    }
+
     /*
         This class represents one chromosome and includes all of the data and methods that it needs
     */
     public class Gene
     {
         //These two are just lists of all of the units on each side that the Gene will use to create it's genotype later
-        public List<FighterController> fighters;
-        public List<FighterController> defenders;
-        public List<FighterController> genotype;
+        public static List<Fighter> blueFighters;
+        public static List<Fighter> orangeFighters;
+        public static NexusData blueNexus;
+        public static NexusData orangeNexus;
+        public List<AttackPair> genotype;
         public double fitness;
 
         //These values help the AI execute the genotype's instructions if this gene is chosen
@@ -37,12 +105,10 @@ public class AI : MonoBehaviour
         private AI ai;
 
         //Initializer assigns all of the gene's data and then generates a random genotype
-        public Gene(List<FighterController> fighters, List<FighterController> defenders, AI ai)
+        public Gene(AI ai)
         {
-            this.fighters = fighters;
-            this.defenders = defenders;
             this.ai = ai;
-            genotype = new List<FighterController>();
+            genotype = new List<AttackPair>();
             fitness = 0;
             Randomize();
             CalculateFitness();
@@ -51,7 +117,7 @@ public class AI : MonoBehaviour
         //Generates a new random genotype
         public void Reset()
         {
-            genotype = new List<FighterController>();
+            genotype = new List<AttackPair>();
             fitness = 0;
             Randomize();
             CalculateFitness();
@@ -68,59 +134,32 @@ public class AI : MonoBehaviour
         */
         public void Randomize()
         {
-            // Create temporary lists of fighters and defenders
-            List<FighterController> tempFighters = new List<FighterController>();
-            foreach (FighterController fighter in fighters)
+            List<Attackable> tempEnemies = new List<Attackable>();
+            List<Fighter> playerList = ai.isOrange ? orangeFighters : blueFighters;
+            List<Fighter> enemyList = ai.isOrange ? blueFighters : orangeFighters;
+
+            foreach (Fighter fighter in enemyList)
             {
-                tempFighters.Add(fighter);
+                tempEnemies.Add(fighter);
             }
 
-            List<FighterController> tempDefenders = new List<FighterController>();
-            foreach (FighterController defender in defenders)
+            foreach (Fighter fighter in playerList)
             {
-                tempDefenders.Add(defender);
-            }
-
-            //Determines whether there are more fighters or defenders
-            MoreAttackers = fighters.Count > defenders.Count;
-
-            matchups = 0;
-
-            //Assigns matchups to be the amount of pairs of units that will fight eachother
-            if (MoreAttackers)
-            {
-                matchups = defenders.Count;
-            }
-            else
-            {
-                matchups = fighters.Count;
-            }
-
-            /*
-                This next section actually goes through and creates the genotype based on these rules:
-
-                    If the index is less than matchups (meaning that the program is assigning pairs of units to fight eachother) then it will alternate between adding a fighter and a defender to the genotype
-
-                    If the index is greater than matchups and less than the total amount of units (meaning that the program is adding on extra units that arent assigned to another unit) then the rest of the units will be added onto the end
-
-                These rules mean that the genotype is in the structure defined above with the extra units just being tacked onto the end of the genotype
-            */
-            while (tempFighters.Count > 0 || tempDefenders.Count > 0)
-            {
-                if (tempDefenders.Count == 0 || (tempFighters.Count > 0 && genotype.Count % 2 == 0))
+                if (tempEnemies.Count > 0)
                 {
-                    int randomID = (int)(Random.value * (tempFighters.Count - 1));
-                    genotype.Add(tempFighters[randomID]);
-                    tempFighters.RemoveAt(randomID);
-                    continue;
+                    int randomID = (int)(Random.value * (tempEnemies.Count - 1));
+                    genotype.Add(new AttackPair(fighter, tempEnemies[randomID]));
+                    tempEnemies.RemoveAt(randomID);
                 }
-
-                if (tempFighters.Count == 0 || (tempDefenders.Count > 0 && genotype.Count % 2 == 1))
+                else
                 {
-                    int randomID = (int)(Random.value * (tempDefenders.Count - 1));
-                    genotype.Add(tempDefenders[randomID]);
-                    tempDefenders.RemoveAt(randomID);
+                    genotype.Add(new AttackPair(fighter, ai.isOrange ? blueNexus : orangeNexus));
                 }
+            }
+
+            foreach (Fighter enemyFighter in tempEnemies)
+            {
+                genotype.Add(new AttackPair(ai.isOrange ? orangeNexus : blueNexus, enemyFighter));
             }
         }
 
@@ -129,13 +168,13 @@ public class AI : MonoBehaviour
         {
             int randomID1 = (int)(Random.value * genotype.Count);
             int randomID2 = 0;
-            while (randomID1 != randomID2 && (genotype[randomID1].defender = genotype[randomID2].defender))
+            while (randomID1 != randomID2)
             {
                 randomID2 = (int)(Random.value * genotype.Count);
             }
-            FighterController temp = genotype[randomID1];
-            genotype[randomID1] = genotype[randomID2];
-            genotype[randomID2] = temp;
+            Attackable tempTarget = genotype[randomID1].target;
+            genotype[randomID1] = new AttackPair(genotype[randomID1].fighter, genotype[randomID2].target);
+            genotype[randomID2] = new AttackPair(genotype[randomID2].fighter, tempTarget);
         }
 
         /*
@@ -148,72 +187,33 @@ public class AI : MonoBehaviour
             double attackDamage = 0;
             double defenceDamage = 0;
             float totalDistance = 0;
+
             //Calculates attack and defence damage done by pairs of units fighting eachother as well as the distance each unit has to travel
-            for (int i = 0; i < matchups - 1; i += 2)
+            foreach (AttackPair pair in genotype)
             {
-                attackDamage += CalculateAttackDamage(genotype[i], genotype[i + 1]);
-                defenceDamage += CalculateAttackDamage(genotype[i + 1], genotype[i]);
-                totalDistance += CalculateDistance(genotype[i], genotype[i + 1].gameObject, ai.usePathfinding);
-            }
-
-            //Calculates any extra damage done by units that arent assigned to fight another unit and instead will fight the enemy nexus
-            for (int i = matchups; i < genotype.Count; i++)
-            {
-                if (MoreAttackers)
+                if (pair.fighter is Fighter)
                 {
-                    attackDamage += genotype[i].damage * ai.extraDamageWeight;
+                    double fightDamage = CalculateAttackDamage(pair.fighter as Fighter, pair.target);
+                    attackDamage += fightDamage * (pair.target is NexusData ? ai.extraDamageWeight : 1);
+                }
 
-                    //determines the distance as well
-                    totalDistance += CalculateDistance(genotype[i], ai.enemyNexus.gameObject, ai.usePathfinding);
-                }
-                else
+                if (pair.target is Fighter)
                 {
-                    defenceDamage += genotype[i].damage * ai.enemyExtraDamageWeight;
+                    double fightDamage = CalculateAttackDamage(pair.target as Fighter, pair.fighter);
+                    defenceDamage += fightDamage * (pair.fighter is NexusData ? ai.enemyExtraDamageWeight : 1);
                 }
+
+                totalDistance += Vector3.Distance(pair.fighter.position, pair.target.position);
             }
 
             //The actual fitness equation
             fitness = (ai.damageDealtWeight * attackDamage) - (ai.damageTakenWeight * defenceDamage) - (ai.distanceWeight * totalDistance);
-
-            //The matchups value tells the AI how many sets of fighters and defenders there are (which helps when actually executing the instructions)
-            matchups = 0;
-            for (int i = 0; i < genotype.Count - 1; i++)
-            {
-                if ((!genotype[i].defender && genotype[i + 1].defender && !ai.enemy) || (genotype[i].defender && !genotype[i + 1].defender && ai.enemy))
-                {
-                    matchups++;
-                }
-            }
         }
 
-        public float CalculateDistance(FighterController attacker, GameObject defender, bool usePathfinding)
-        {
-            if (usePathfinding)
-            {
-                //This algorithm uses the NavMeshAgents within the units to find the length of the path that it will take
-                //This method was extremely inefficient so I made it optional
-                NavMeshAgent agent = attacker.gameObject.GetComponent<NavMeshAgent>();
-                Vector3 target = defender.transform.position;
-                NavMeshPath path = new NavMeshPath();
-                agent.CalculatePath(target, path);
-                float distance = 0;
-                for (int i = 1; i < path.corners.Length; i++)
-                {
-                    distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                }
-                return distance;
-            }
-            else
-            {
-                //This method just uses the distance between the two units which is way more efficient but slightly less accurate if there are obsticles that the unit needs to avoid
-                return Vector3.Distance(attacker.gameObject.transform.position, defender.transform.position);
-            }
-        }
-
-        public double CalculateAttackDamage(FighterController attacker, FighterController defender)
+        public double CalculateAttackDamage(Fighter attacker, Attackable defender)
         {
             //This is the equation for the damage that a unit takes. Each armor value offers a 5% damage reduction
-            double damage = (attacker.damage - (attacker.damage * (defender.armor / 20)));
+            double damage = attacker.damage - (attacker.damage * (defender.armor / 20));
 
             //This increases the value of the damage if it kills the unit
             if (damage >= defender.health)
@@ -226,24 +226,21 @@ public class AI : MonoBehaviour
         //This method prints out the contents and fitness of a gene
         public string toString()
         {
-            string text = "";
-            foreach (FighterController fighter in genotype)
+            string text = "{\n";
+            foreach (AttackPair pair in genotype)
             {
-                text += (fighter + ", ");
+                text += pair.ToString() + "\n";
             }
-            text += ("\nFitness: " + fitness);
-            return text;
+            return text + "}";
         }
     }
     //These are the lists of the units in each team
-    public List<FighterController> fighters;
-    public List<FighterController> defenders;
     public List<Gene> genes;
 
     public Nexus enemyNexus;
     public Nexus nexus;
 
-    public bool enemy;
+    public bool isOrange;
 
     //These are all of the different settings for the AI
     public int populationSize;
@@ -266,12 +263,12 @@ public class AI : MonoBehaviour
     private bool isActive = false;
     private bool isStarting = true;
     private int currentGeneration = 0;
+    private GameController gameController;
 
     void Awake() 
     {
         //Initializes all of the lists
-        fighters = new List<FighterController>();
-        defenders = new List<FighterController>();
+        gameController = GameObject.FindWithTag("GameController").GetComponent<GameController>();
         genes = new List<Gene>();
         families = Mathf.Min(families, populationSize / 2);
         print("Should be initialized now");
@@ -300,18 +297,29 @@ public class AI : MonoBehaviour
     {
         if(isStarting){
             //Initializes a randomized initial population of genes
-            while(genes.Count < populationSize){
-                genes.Add(new Gene(fighters, defenders, this));
+            while (genes.Count < populationSize)
+            {
+                Gene.blueNexus = new NexusData(gameController.playerNexus.health, false, gameController.playerNexus.transform.position);
+                Gene.orangeNexus = new NexusData(gameController.enemyNexus.health, true, gameController.enemyNexus.transform.position);
+                Gene.blueFighters = gameController.blueFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, false, fighter.transform.position, fighter.id)).ToList();
+                Gene.orangeFighters = gameController.orangeFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, true, fighter.transform.position, fighter.id)).ToList();
+                genes.Add(new Gene(this));
             }
             isStarting = false;
         }
         if(isActive){
-            foreach(Gene gene in genes){
-                //Reset all of the genes each round
-                gene.fighters = fighters;
-                gene.defenders = defenders;
-                gene.Reset();
-                gene.CalculateFitness();
+            if (currentGeneration == 0)
+            {
+                Gene.blueNexus.SetHealth(gameController.playerNexus.health);
+                Gene.orangeNexus.SetHealth(gameController.enemyNexus.health);
+                Gene.blueFighters = gameController.blueFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, false, fighter.transform.position, fighter.id)).ToList();
+                Gene.orangeFighters = gameController.orangeFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, true, fighter.transform.position, fighter.id)).ToList();
+                foreach (Gene gene in genes)
+                {
+                    //Reset all of the genes each round
+                    gene.Reset();
+                    gene.CalculateFitness();
+                }
             }
             Gene bestGene;
             bool firstGen = true;
@@ -332,19 +340,45 @@ public class AI : MonoBehaviour
 
                 //print("Best Gene: " + bestGene.toString());
 
-                //Goes through and actually executes the instructions in the gene
-                for(int i = 0; i < bestGene.matchups * 2; i += 2){
-                    bestGene.genotype[i].Fight(bestGene.genotype[i + 1]);
-                }
-                foreach(FighterController fighter in fighters){
-                    if(!fighter.blocked){
-                        fighter.Fight(enemyNexus);
+                foreach (AttackPair pair in bestGene.genotype)
+                {
+                    if (pair.fighter is Fighter)
+                    {
+                        FighterController fighterController = GetFighterController(pair.fighter as Fighter);
+                        if (fighterController == null)
+                        {
+                            continue;
+                        }
+                        if (pair.target is Fighter)
+                        {
+                            FighterController enemyController = GetFighterController(pair.target as Fighter);
+                            if (enemyController != null)
+                            {
+                                fighterController.Fight(enemyController);
+                            }
+                            else
+                            {
+                                print("Couldn't find " + (pair.target.isOrange ? "orange" : "blue") + " fighter with ID: " + (pair.target as Fighter).id);
+                                fighterController.Fight(fighterController);
+                            }
+                        }
+                        else
+                        {
+                            fighterController.Fight(enemyNexus);
+                        }
                     }
                 }
                 currentGeneration = 0;
                 isActive = false;
             }
         }
+    }
+
+    FighterController GetFighterController(Fighter fighter)
+    {
+        return fighter.isOrange ?
+            gameController.orangeFighters.Find(fighterController => fighterController.id == fighter.id) :
+            gameController.blueFighters.Find(fighterController => fighterController.id == fighter.id);
     }
 
     void NewGeneration()
@@ -376,7 +410,7 @@ public class AI : MonoBehaviour
                 double target = sumFitness * Random.value;
                 int index = genes.Count - 1;
                 double partialsum = 0;
-                while ((target > 0 && partialsum < target) || (target < 0 && partialsum > target) && index >= 0)
+                while ((target > 0 && partialsum < target) || target < 0 && partialsum > target && index >= 0)
                 {
                     partialsum += genes[index].fitness;
                     if ((target > 0 && partialsum >= target) || (target <= 0 && partialsum <= target))
@@ -424,11 +458,11 @@ public class AI : MonoBehaviour
                 pointA = (int)(Random.value * (parent1.genotype.Count - 1));
                 pointB = (int)(Random.value * (parent1.genotype.Count - pointA - 1)) + pointA;
             }
-            Gene child1 = new Gene(fighters, defenders, this);
-            Gene child2 = new Gene(fighters, defenders, this);
+            Gene child1 = new Gene(this);
+            Gene child2 = new Gene(this);
 
-            child1.genotype = new List<FighterController>();
-            child2.genotype = new List<FighterController>();
+            child1.genotype = new List<AttackPair>();
+            child2.genotype = new List<AttackPair>();
 
             for (int i = 0; i < pointA; i++)
             {
@@ -512,51 +546,10 @@ public class AI : MonoBehaviour
         }
     }
 
-    //This method is called by every unit as they are created and it will add them to their respective list according to which side they're on
-    public void AddFighter(FighterController fighter, bool isDefender)
-    {
-        if(isDefender != enemy)
-        {
-            if(fighter != null)
-            {
-                defenders.Add(fighter);
-            }
-        }
-        else
-        {
-            if(fighter != null && fighters != null)
-            {
-                fighters.Add(fighter);
-            } else {
-                print("Something's gone wrong");
-            }
-        }
-    }
-
-    //This method is called by every unit as they die and it will remove them from their respective list
-    public void RemoveFighter(FighterController fighter, bool isDefender){
-        if((isDefender && !enemy) || (!isDefender && enemy)){
-            defenders.Remove(fighter);
-            foreach(Gene gene in genes){
-                gene.defenders.Remove(fighter);
-            }
-            //print("Removed defender: " + fighter);
-        }
-        else if((!isDefender && !enemy) || (isDefender && enemy)){
-            fighters.Remove(fighter);
-            foreach(Gene gene in genes){
-                gene.fighters.Remove(fighter);
-            }
-            //print("Removed fighter: " + fighter);
-        }
-    }
-
     //This method is called once the game has ended and it will make all remaining units return to their original position
     public void Stop(){
         isActive = false;
-        foreach(FighterController fighter in fighters){
-            fighter.Reset();
-        }
+        
     }
 
     //This method compiles data for the UI

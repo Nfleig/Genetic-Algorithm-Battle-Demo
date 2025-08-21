@@ -6,6 +6,7 @@ using UnityEngine.AI;
 public class FighterController : MonoBehaviour
 {
     // Public Properties
+    public int id;
     public double health;
     public int damage;
     public int armor;
@@ -21,9 +22,9 @@ public class FighterController : MonoBehaviour
     public int maxArmor;
 
     // Private properties
-    private GameObject[] AIs;
     private NavMeshAgent agent;
     private LineRenderer line;
+    private GameController gameController;
     private bool fighting;
     private bool textVisible = false;
     private bool clicked = false;
@@ -40,11 +41,8 @@ public class FighterController : MonoBehaviour
 
     void Start()
     {
-        // Find all of the AIs
 
-        while(AIs == null){
-            AIs = GameObject.FindGameObjectsWithTag("AI");
-        }
+        gameController = GameObject.FindWithTag("GameController").GetComponent<GameController>();
 
         // Find the fighter's starting position
 
@@ -61,12 +59,6 @@ public class FighterController : MonoBehaviour
         health = (int) (Random.value * (maxHealth - 1)) + 1;
         damage = (int) (Random.value * (maxDamage - 1)) + 1;
         armor = (int) (Random.value * (maxArmor - 1)) + 1;
-        
-        // Register the fighter with all AIs
-        
-        foreach(GameObject AI in AIs){
-            AI.GetComponent<AI>().AddFighter(this, defender);
-        }
 
         // Set up the pathfinder
 
@@ -143,6 +135,11 @@ public class FighterController : MonoBehaviour
         Target = target.gameObject;
     }
 
+    public void SetID(int id)
+    {
+        this.id = id;
+    }
+
     /*
      * This function is called when the fighter collides with something
      */
@@ -214,7 +211,7 @@ public class FighterController : MonoBehaviour
                     // Reduce the health of the other fighter using a formula based on our stats
 
                     if(otherFighter){
-                        otherFighter.health -= (damage - (damage * (otherFighter.armor / 20)));
+                        otherFighter.health -= damage - (damage * (otherFighter.armor / 20));
                     }
 
                     // Reduce the health of the nexus
@@ -234,12 +231,9 @@ public class FighterController : MonoBehaviour
 
         // If the fighter is already dead then don't kill it again
 
-        if(!dead) {
-
-            // Deregister the fighter with all AIs
-            foreach (GameObject AI in AIs) {
-                AI.GetComponent<AI>().RemoveFighter(this, defender);
-            }
+        if (!dead)
+        {
+            gameController.RemoveFighter(this);
 
             // Turn the dying fighter red
 
