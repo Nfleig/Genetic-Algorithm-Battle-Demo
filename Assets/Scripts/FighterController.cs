@@ -10,10 +10,9 @@ public class FighterController : MonoBehaviour
     public double health;
     public int damage;
     public int armor;
-    public bool defender;
+    public bool isOrange;
     public float deathTime;
     public float attackDelay;
-    public bool blocked;
     public bool dead;
     public GameObject Target;
     public Material deathMaterial;
@@ -52,7 +51,6 @@ public class FighterController : MonoBehaviour
         deathTimer = deathTime;
         attackTimer = 0;
         dead = false;
-        blocked = false;
 
         // Find the AI's stats
 
@@ -112,7 +110,6 @@ public class FighterController : MonoBehaviour
 
             // Update the line
 
-            blocked = false;
             Vector3[] points = agent.path.corners;
             line.SetPositions(points);
         }
@@ -123,7 +120,6 @@ public class FighterController : MonoBehaviour
      */
 
     public void Fight(FighterController target){
-        blocked = true;
         Target = target.gameObject;
     }
 

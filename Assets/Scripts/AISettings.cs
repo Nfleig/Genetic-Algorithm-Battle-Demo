@@ -13,7 +13,6 @@ public class AISettings : MonoBehaviour
         ExtraDamageWeight,
         EnemyExtraDamageWeight,
         DistanceWeight,
-        UsePathfinding,
         Generations,
         PopulationSize,
         MutationChance,
@@ -28,6 +27,7 @@ public class AISettings : MonoBehaviour
     // Public Properties
     public AI ai;
     public GameController game;
+    public GameObject changeText;
 
     // Private Properties
     private List<Setting> settings;
@@ -43,15 +43,18 @@ public class AISettings : MonoBehaviour
             settings.Add(setting.GetComponent<Setting>());
         }
     }
-    
+
     /*
      * This function will set all of the settings in the AI when the battle starts
      */
 
-    public void StartBattle(){
+    public void StartBattle()
+    {
         int oldDebris = game.ObstacleCount;
-        foreach(Setting setting in settings){
-            switch(setting.ID){
+        foreach (Setting setting in settings)
+        {
+            switch (setting.ID)
+            {
                 case SettingID.DamageDealtWeight:
                     ai.damageDealtWeight = setting.value;
                     break;
@@ -70,9 +73,6 @@ public class AISettings : MonoBehaviour
                 case SettingID.DistanceWeight:
                     ai.distanceWeight = setting.value;
                     break;
-                case SettingID.UsePathfinding:
-                    ai.usePathfinding = setting.boolValue;
-                    break;
                 case SettingID.Generations:
                     ai.generations = setting.numValue;
                     break;
@@ -86,13 +86,13 @@ public class AISettings : MonoBehaviour
                     ai.families = setting.numValue;
                     break;
                 case SettingID.SelectionMethod:
-                    ai.selectionMethod = (AI.SelectionMethod) setting.numValue;
+                    ai.selectionMethod = (AI.SelectionMethod)setting.numValue;
                     break;
                 case SettingID.FighterCount:
-                    game.fighterCount = setting.numValue;
+                    game.blueFighterCount = setting.numValue;
                     break;
                 case SettingID.DefenderCount:
-                    game.defenderCount = setting.numValue;
+                    game.orangeFighterCount = setting.numValue;
                     break;
                 case SettingID.ObstacleCount:
                     game.ObstacleCount = setting.numValue;
@@ -101,16 +101,18 @@ public class AISettings : MonoBehaviour
                     game.turnDelay = setting.numValue;
                     break;
                 case SettingID.ReplacementMethod:
-                    ai.replacementMethod = (AI.ReplacementMethod) setting.numValue;
+                    ai.replacementMethod = (AI.ReplacementMethod)setting.numValue;
                     break;
             }
         }
 
         // If the obstacle count has been updated then regenerate the battlefield
 
-        if(oldDebris != game.ObstacleCount){
+        if (oldDebris != game.ObstacleCount)
+        {
             game.CreateBattlefield();
         }
         game.Reset();
+        changeText.SetActive(false);
     }
 }

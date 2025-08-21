@@ -27,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.3088117, y: 5.1067243, z: -1.7643819}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -45,16 +46,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyNexus: {fileID: 0}
   nexus: {fileID: 0}
-  Enemy: 0
+  isOrange: 0
   populationSize: 500
   generations: 1000
-  GPF: 25
+  GPF: 50
   families: 5
-  mutateChance: 0.03
+  mutationChance: 0.03
   selectionMethod: 0
-  unitDeathWeight: 2
-  agressiveness: 1
-  ExtraDamageWeight: 2
-  EnemyExtraDamageWeight: 4
+  replacementMethod: 2
+  lethalDamageWeight: 1
+  damageDealtWeight: 1
+  damageTakenWeight: 1
+  extraDamageWeight: 2
+  enemyExtraDamageWeight: 4
   distanceWeight: 1
-  usePathfinding: 0

@@ -5,5 +5,4 @@ using UnityEngine;
 public class Nexus : MonoBehaviour
 {
     public int health;
-    public bool enemy;
 }

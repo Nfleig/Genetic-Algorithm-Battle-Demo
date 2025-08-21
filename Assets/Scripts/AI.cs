@@ -258,7 +258,6 @@ public class AI : MonoBehaviour
     public double extraDamageWeight = 2;
     public double enemyExtraDamageWeight = 2;
     public double distanceWeight = 1;
-    public bool usePathfinding = false;
 
     private bool isActive = false;
     private bool isStarting = true;
@@ -299,8 +298,8 @@ public class AI : MonoBehaviour
             //Initializes a randomized initial population of genes
             while (genes.Count < populationSize)
             {
-                Gene.blueNexus = new NexusData(gameController.playerNexus.health, false, gameController.playerNexus.transform.position);
-                Gene.orangeNexus = new NexusData(gameController.enemyNexus.health, true, gameController.enemyNexus.transform.position);
+                Gene.blueNexus = new NexusData(gameController.blueNexus.health, false, gameController.blueNexus.transform.position);
+                Gene.orangeNexus = new NexusData(gameController.orangeNexus.health, true, gameController.orangeNexus.transform.position);
                 Gene.blueFighters = gameController.blueFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, false, fighter.transform.position, fighter.id)).ToList();
                 Gene.orangeFighters = gameController.orangeFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, true, fighter.transform.position, fighter.id)).ToList();
                 genes.Add(new Gene(this));
@@ -310,8 +309,8 @@ public class AI : MonoBehaviour
         if(isActive){
             if (currentGeneration == 0)
             {
-                Gene.blueNexus.SetHealth(gameController.playerNexus.health);
-                Gene.orangeNexus.SetHealth(gameController.enemyNexus.health);
+                Gene.blueNexus.SetHealth(gameController.blueNexus.health);
+                Gene.orangeNexus.SetHealth(gameController.orangeNexus.health);
                 Gene.blueFighters = gameController.blueFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, false, fighter.transform.position, fighter.id)).ToList();
                 Gene.orangeFighters = gameController.orangeFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, true, fighter.transform.position, fighter.id)).ToList();
                 foreach (Gene gene in genes)
@@ -358,7 +357,7 @@ public class AI : MonoBehaviour
                             }
                             else
                             {
-                                print("Couldn't find " + (pair.target.isOrange ? "orange" : "blue") + " fighter with ID: " + (pair.target as Fighter).id);
+                                //print("Couldn't find " + (pair.target.isOrange ? "orange" : "blue") + " fighter with ID: " + (pair.target as Fighter).id);
                                 fighterController.Fight(fighterController);
                             }
                         }

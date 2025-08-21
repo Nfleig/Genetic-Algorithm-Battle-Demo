@@ -9,12 +9,12 @@ public class GameController : MonoBehaviour
     // Public Properties
     public GameObject fighter;
     public GameObject defender;
-    public Nexus playerNexus;
-    public Nexus enemyNexus;
-    public AI playerAI;
-    public AI enemyAI;
-    public int fighterCount;
-    public int defenderCount;
+    public Nexus blueNexus;
+    public Nexus orangeNexus;
+    public AI blueAI;
+    public AI orangeAI;
+    public int blueFighterCount;
+    public int orangeFighterCount;
     public float armyDistance = 3;
     public float turnDelay = 10;
     public int nexusHealth = 80;
@@ -58,16 +58,16 @@ public class GameController : MonoBehaviour
         
         // If the framerate is too low then decrease the generations per second
 
-        if(fps < 10 && playerAI.GPF > 5){
-            playerAI.GPF--;
-            enemyAI.GPF--;
+        if(fps < 10 && blueAI.GPF > 5){
+            blueAI.GPF--;
+            orangeAI.GPF--;
         }
 
         // If the framerate is high enough then we can start increasing the generations per second
 
-        else if(fps > 12 && fps < 50 && playerAI.GPF < 50){
-            playerAI.GPF++;
-            enemyAI.GPF++;
+        else if(fps > 12 && fps < 50 && blueAI.GPF < 50){
+            blueAI.GPF++;
+            orangeAI.GPF++;
         }
 
         // Get the number of fighters
@@ -87,22 +87,22 @@ public class GameController : MonoBehaviour
 
         // See if either player has lost or the game has ended
 
-        if ((numFighters == 0 || playerNexus.health <= 0) && !_gameOver)
+        if ((numFighters == 0 || blueNexus.health <= 0) && !_gameOver)
         {
             winLabel.text = "Orange Team Wins";
             _gameOver = true;
-            playerAI.Stop();
-            enemyAI.Stop();
+            blueAI.Stop();
+            orangeAI.Stop();
             foreach(FighterController fighter in blueFighters.Concat(orangeFighters)){
                 fighter.Reset();
             }
         }
-        if ((numDefenders == 0 || enemyNexus.health <= 0) && !_gameOver)
+        if ((numDefenders == 0 || orangeNexus.health <= 0) && !_gameOver)
         {
             winLabel.text = "Blue Team Wins";
             _gameOver = true;
-            playerAI.Stop();
-            enemyAI.Stop();
+            blueAI.Stop();
+            orangeAI.Stop();
             foreach(FighterController fighter in blueFighters.Concat(orangeFighters)){
                 fighter.Reset();
             }
@@ -114,8 +114,8 @@ public class GameController : MonoBehaviour
             _turnTimer -= Time.fixedDeltaTime;
             if(_turnTimer <= 0){
                 //print(fighters.Count);
-                playerAI.runAI();
-                enemyAI.runAI();
+                blueAI.runAI();
+                orangeAI.runAI();
                 _turnTimer = turnDelay;
             }
         }
@@ -136,8 +136,8 @@ public class GameController : MonoBehaviour
 
         // Disable the AIs
 
-        playerAI.gameObject.SetActive(false);
-        enemyAI.gameObject.SetActive(false);
+        blueAI.gameObject.SetActive(false);
+        orangeAI.gameObject.SetActive(false);
         Debug.Log("AIs disabled!");
         
         // Kill all of the fighters and defenders
@@ -165,17 +165,17 @@ public class GameController : MonoBehaviour
         blueFighters = new List<FighterController>();
         orangeFighters = new List<FighterController>();
         _gameOver = false;
-        playerNexus.health = nexusHealth;
-        enemyNexus.health = nexusHealth;
+        blueNexus.health = nexusHealth;
+        orangeNexus.health = nexusHealth;
         
         // Reactivate the AIs
         
-        playerAI.gameObject.SetActive(true);
-        enemyAI.gameObject.SetActive(true);
+        blueAI.gameObject.SetActive(true);
+        orangeAI.gameObject.SetActive(true);
 
         // Get the length of the line of fighters
 
-        float fighterLength = fighterCount * 1.25f;
+        float fighterLength = blueFighterCount * 1.25f;
 
         _turnTimer = 0;
 
@@ -183,15 +183,15 @@ public class GameController : MonoBehaviour
 
         // Respawn all of the fighters on both sides
 
-        for(int i = 0; i < fighterCount; i++){
+        for(int i = 0; i < blueFighterCount; i++){
             newFighter = Instantiate(fighter, new Vector3(-(fighterLength/2) + ((i + 1) * 1.25f), 0, -armyDistance), Quaternion.identity);
             FighterController newFighterController = newFighter.GetComponent<FighterController>();
             newFighterController.SetID(i);
             blueFighters.Add(newFighterController);
         }
 
-        float defenderLength = defenderCount * 1.25f;
-        for(int i = 0; i < defenderCount; i++){
+        float defenderLength = orangeFighterCount * 1.25f;
+        for(int i = 0; i < orangeFighterCount; i++){
             newFighter = Instantiate(defender, new Vector3(-(defenderLength/2) + ((i + 1) * 1.25f), 0, armyDistance), Quaternion.identity);
             FighterController newFighterController = newFighter.GetComponent<FighterController>();
             newFighterController.SetID(i);
@@ -205,7 +205,7 @@ public class GameController : MonoBehaviour
 
     public void RemoveFighter(FighterController fighter)
     {
-        if (fighter.defender)
+        if (fighter.isOrange)
         {
             orangeFighters.Remove(fighter);
         }

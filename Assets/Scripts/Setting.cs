@@ -38,6 +38,10 @@ public class Setting : MonoBehaviour
         else if(input){
             try{
                 numValue = Convert.ToInt32(input.text);
+                if (numValue < 0)
+                {
+                    throw new FormatException();
+                }
                 errorText.SetActive(false);
             }
             catch(FormatException){
