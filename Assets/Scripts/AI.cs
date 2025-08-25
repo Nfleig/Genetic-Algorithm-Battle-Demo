@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -12,6 +13,17 @@ public class AI : MonoBehaviour
         BestFit
     }
 
+    public static SelectionMethod IntToSelectionMethod(int value)
+    {
+        return value switch
+        {
+            0 => SelectionMethod.Roulette,
+            1 => SelectionMethod.Random,
+            2 => SelectionMethod.BestFit,
+            _ => throw new Exception("Value " + value + " does not correspond to a selection method.")
+        };
+    }
+
     public enum ReplacementMethod
     {
         WeakestParent,
@@ -19,13 +31,24 @@ public class AI : MonoBehaviour
         WeakestGene
     }
 
+    public static ReplacementMethod IntToReplacementMethod(int value)
+    {
+        return value switch
+        {
+            0 => ReplacementMethod.WeakestParent,
+            1 => ReplacementMethod.BothParents,
+            2 => ReplacementMethod.WeakestGene,
+            _ => throw new Exception("Value " + value + " does not correspond to a replacement method.")
+        };
+    }
+
     public abstract class Attackable
     {
-        public double health;
+        public float health;
         public int armor;
         public bool isOrange;
         public Vector3 position;
-        public Attackable(double health, int armor, bool isOrange, Vector3 position)
+        public Attackable(float health, int armor, bool isOrange, Vector3 position)
         {
             this.health = health;
             this.armor = armor;
@@ -39,7 +62,7 @@ public class AI : MonoBehaviour
         public int id;
         public int damage;
 
-        public Fighter(double health, int damage, int armor, bool isOrange, Vector3 position, int id) : base(health, armor, isOrange, position)
+        public Fighter(float health, int damage, int armor, bool isOrange, Vector3 position, int id) : base(health, armor, isOrange, position)
         {
             this.damage = damage;
             this.id = id;
@@ -53,12 +76,12 @@ public class AI : MonoBehaviour
 
     public class NexusData : Attackable
     {
-        public NexusData(double health, bool isOrange, Vector3 position) : base(health, 1, isOrange, position)
+        public NexusData(float health, bool isOrange, Vector3 position) : base(health, 1, isOrange, position)
         {
 
         }
 
-        public void SetHealth(double health)
+        public void SetHealth(float health)
         {
             this.health = health;
         }
@@ -147,7 +170,7 @@ public class AI : MonoBehaviour
             {
                 if (tempEnemies.Count > 0)
                 {
-                    int randomID = (int)(Random.value * (tempEnemies.Count - 1));
+                    int randomID = (int)(UnityEngine.Random.value * (tempEnemies.Count - 1));
                     genotype.Add(new AttackPair(fighter, tempEnemies[randomID]));
                     tempEnemies.RemoveAt(randomID);
                 }
@@ -166,11 +189,11 @@ public class AI : MonoBehaviour
         //This method mutates a genotype by swiching two units (making sure that they are the same type so as not to destroy the genotype structure)
         public void Mutate()
         {
-            int randomID1 = (int)(Random.value * genotype.Count);
+            int randomID1 = (int)(UnityEngine.Random.value * genotype.Count);
             int randomID2 = 0;
             while (randomID1 != randomID2)
             {
-                randomID2 = (int)(Random.value * genotype.Count);
+                randomID2 = (int)(UnityEngine.Random.value * genotype.Count);
             }
             Attackable tempTarget = genotype[randomID1].target;
             genotype[randomID1] = new AttackPair(genotype[randomID1].fighter, genotype[randomID2].target);
@@ -194,20 +217,20 @@ public class AI : MonoBehaviour
                 if (pair.fighter is Fighter)
                 {
                     double fightDamage = CalculateAttackDamage(pair.fighter as Fighter, pair.target);
-                    attackDamage += fightDamage * (pair.target is NexusData ? ai.extraDamageWeight : 1);
+                    attackDamage += fightDamage * (pair.target is NexusData ? ai.aiSettings.extraDamageWeight : 1);
                 }
 
                 if (pair.target is Fighter)
                 {
                     double fightDamage = CalculateAttackDamage(pair.target as Fighter, pair.fighter);
-                    defenceDamage += fightDamage * (pair.fighter is NexusData ? ai.enemyExtraDamageWeight : 1);
+                    defenceDamage += fightDamage * (pair.fighter is NexusData ? ai.aiSettings.enemyExtraDamageWeight : 1);
                 }
 
                 totalDistance += Vector3.Distance(pair.fighter.position, pair.target.position);
             }
 
             //The actual fitness equation
-            fitness = (ai.damageDealtWeight * attackDamage) - (ai.damageTakenWeight * defenceDamage) - (ai.distanceWeight * totalDistance);
+            fitness = (ai.aiSettings.damageDealtWeight * attackDamage) - (ai.aiSettings.damageTakenWeight * defenceDamage) - (ai.aiSettings.distanceWeight * totalDistance);
         }
 
         public double CalculateAttackDamage(Fighter attacker, Attackable defender)
@@ -218,7 +241,7 @@ public class AI : MonoBehaviour
             //This increases the value of the damage if it kills the unit
             if (damage >= defender.health)
             {
-                damage *= ai.lethalDamageWeight;
+                damage *= ai.aiSettings.lethalDamageWeight;
             }
             return damage;
         }
@@ -234,30 +257,77 @@ public class AI : MonoBehaviour
             return text + "}";
         }
     }
+
+    [System.Serializable]
+    public class AISettings
+    {
+        public int populationSize;
+        public int generations;
+        public int GPF;
+        public int families;
+        public float mutationChance;
+        public SelectionMethod selectionMethod;
+        public ReplacementMethod replacementMethod;
+        public float lethalDamageWeight = 1;
+        public float damageDealtWeight = 1;
+        public float damageTakenWeight = 1;
+        public float extraDamageWeight = 2;
+        public float enemyExtraDamageWeight = 2;
+        public float distanceWeight = 1;
+        public AISettings(
+            int populationSize,
+            int generations,
+            int GPF,
+            int families,
+            float mutationChance,
+            SelectionMethod selectionMethod,
+            ReplacementMethod replacementMethod,
+            float lethalDamageWeight,
+            float damageDealtWeight,
+            float damageTakenWeight,
+            float extraDamageWeight,
+            float enemyExtraDamageWeight,
+            float distanceWeight
+        )
+        {
+            this.populationSize = populationSize;
+            this.generations = generations;
+            this.GPF = GPF;
+            this.families = families;
+            this.mutationChance = mutationChance;
+            this.selectionMethod = selectionMethod;
+            this.replacementMethod = replacementMethod;
+            this.lethalDamageWeight = lethalDamageWeight;
+            this.damageDealtWeight = damageDealtWeight;
+            this.damageTakenWeight = damageTakenWeight;
+            this.extraDamageWeight = extraDamageWeight;
+            this.enemyExtraDamageWeight = enemyExtraDamageWeight;
+            this.distanceWeight = distanceWeight;
+        }
+        public AISettings(AISettings other)
+        {
+            populationSize = other.populationSize;
+            generations = other.generations;
+            GPF = other.GPF;
+            families = other.families;
+            mutationChance = other.mutationChance;
+            selectionMethod = other.selectionMethod;
+            replacementMethod = other.replacementMethod;
+            lethalDamageWeight = other.lethalDamageWeight;
+            damageDealtWeight = other.damageDealtWeight;
+            damageTakenWeight = other.damageTakenWeight;
+            extraDamageWeight = other.extraDamageWeight;
+            enemyExtraDamageWeight = other.enemyExtraDamageWeight;
+            distanceWeight = other.distanceWeight;
+        }
+    }
     //These are the lists of the units in each team
     public List<Gene> genes;
-
-    public Nexus enemyNexus;
-    public Nexus nexus;
 
     public bool isOrange;
 
     //These are all of the different settings for the AI
-    public int populationSize;
-    public int generations;
-    public int GPF;
-    public int families;
-    public double mutationChance;
-    public SelectionMethod selectionMethod;
-    public ReplacementMethod replacementMethod;
-
-    //And these are the different weights that affect the fitness formula
-    public double lethalDamageWeight = 1;
-    public double damageDealtWeight = 1;
-    public double damageTakenWeight = 1;
-    public double extraDamageWeight = 2;
-    public double enemyExtraDamageWeight = 2;
-    public double distanceWeight = 1;
+    public AISettings aiSettings;
 
     private bool isActive = false;
     private bool isStarting = true;
@@ -269,7 +339,6 @@ public class AI : MonoBehaviour
         //Initializes all of the lists
         gameController = GameObject.FindWithTag("GameController").GetComponent<GameController>();
         genes = new List<Gene>();
-        families = Mathf.Min(families, populationSize / 2);
         print("Should be initialized now");
     }
 
@@ -296,7 +365,7 @@ public class AI : MonoBehaviour
     {
         if(isStarting){
             //Initializes a randomized initial population of genes
-            while (genes.Count < populationSize)
+            while (genes.Count < aiSettings.populationSize)
             {
                 Gene.blueNexus = new NexusData(gameController.blueNexus.health, false, gameController.blueNexus.transform.position);
                 Gene.orangeNexus = new NexusData(gameController.orangeNexus.health, true, gameController.orangeNexus.transform.position);
@@ -323,9 +392,9 @@ public class AI : MonoBehaviour
             Gene bestGene;
             bool firstGen = true;
             //Runs each generation
-            if(currentGeneration < generations){
+            if(currentGeneration < aiSettings.generations){
                 //Limits the amount of generations that will be run per frame according to the GPF value
-                while(currentGeneration < generations && (currentGeneration % GPF != 0 || firstGen)){
+                while(currentGeneration < aiSettings.generations && (currentGeneration % aiSettings.GPF != 0 || firstGen)){
                     //print("Generation " + (index + 1) + ":");
                     NewGeneration();
                     currentGeneration++;
@@ -363,7 +432,7 @@ public class AI : MonoBehaviour
                         }
                         else
                         {
-                            fighterController.Fight(enemyNexus);
+                            fighterController.Fight(isOrange ? gameController.blueNexus : gameController.orangeNexus);
                         }
                     }
                 }
@@ -400,13 +469,13 @@ public class AI : MonoBehaviour
             newGenes.Add(gene);
         }
 
-        int[] parentGeneIDs = new int[families * 2];
+        int[] parentGeneIDs = new int[aiSettings.families * 2];
 
         for (int i = 0; i < parentGeneIDs.Length; i++)
         {
-            if (selectionMethod == SelectionMethod.Roulette)
+            if (aiSettings.selectionMethod == SelectionMethod.Roulette)
             {
-                double target = sumFitness * Random.value;
+                double target = sumFitness * UnityEngine.Random.value;
                 int index = genes.Count - 1;
                 double partialsum = 0;
                 while ((target > 0 && partialsum < target) || target < 0 && partialsum > target && index >= 0)
@@ -419,9 +488,9 @@ public class AI : MonoBehaviour
                     index--;
                 }
             }
-            else if (selectionMethod == SelectionMethod.Random)
+            else if (aiSettings.selectionMethod == SelectionMethod.Random)
             {
-                int randomID = (int)(Random.value * (genes.Count - 1));
+                int randomID = (int)(UnityEngine.Random.value * (genes.Count - 1));
                 parentGeneIDs[i] = randomID;
             }
             else
@@ -454,8 +523,8 @@ public class AI : MonoBehaviour
             int pointB = 0;
             while (pointA == pointB)
             {
-                pointA = (int)(Random.value * (parent1.genotype.Count - 1));
-                pointB = (int)(Random.value * (parent1.genotype.Count - pointA - 1)) + pointA;
+                pointA = (int)(UnityEngine.Random.value * (parent1.genotype.Count - 1));
+                pointB = (int)(UnityEngine.Random.value * (parent1.genotype.Count - pointA - 1)) + pointA;
             }
             Gene child1 = new Gene(this);
             Gene child2 = new Gene(this);
@@ -480,9 +549,9 @@ public class AI : MonoBehaviour
             }
 
             //This conditional statement will then potentially mutate one of the children as described earlier.
-            if (Random.value <= mutationChance)
+            if (UnityEngine.Random.value <= aiSettings.mutationChance)
             {
-                if (Random.value <= 0.5)
+                if (UnityEngine.Random.value <= 0.5)
                 {
                     child1.Mutate();
                 }
@@ -495,7 +564,7 @@ public class AI : MonoBehaviour
             //Then if any of the children are stronger than any of the parents, the stronger children will replace the weaker parents.
             child1.CalculateFitness();
             child2.CalculateFitness();
-            if (replacementMethod == ReplacementMethod.WeakestParent)
+            if (aiSettings.replacementMethod == ReplacementMethod.WeakestParent)
             {
                 if (child1.fitness > parent1.fitness)
                 {
@@ -516,7 +585,7 @@ public class AI : MonoBehaviour
                     newGenes[parent2ID] = child2;
                 }
             }
-            else if (replacementMethod == ReplacementMethod.BothParents)
+            else if (aiSettings.replacementMethod == ReplacementMethod.BothParents)
             {
                 newGenes[parent1ID] = child2;
                 newGenes[parent2ID] = child2;
@@ -561,7 +630,7 @@ public class AI : MonoBehaviour
         if(isActive){
             state = "Thinking";
         }
-        string data = "State: " + state + "\nGeneration: " + currentGeneration + "\nBestFitness: " + bestFitness + "\nNexus Health: " + nexus.health;
+        string data = "State: " + state + "\nGeneration: " + currentGeneration + "\nBestFitness: " + bestFitness + "\nNexus Health: " + (isOrange ? gameController.orangeNexus : gameController.blueNexus).health;
         return data;
     }
 }

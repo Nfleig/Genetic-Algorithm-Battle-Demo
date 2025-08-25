@@ -7,6 +7,7 @@ TagManager:
   - AI
   - Camera
   - Setting
+  - SettingsManager
   layers:
   - Default
   - TransparentFX

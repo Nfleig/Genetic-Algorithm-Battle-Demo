@@ -21,7 +21,7 @@ public class GameController : MonoBehaviour
     public GameObject menu;
     public GameObject UI;
     public GameObject Obstacle;
-    public int ObstacleCount;
+    public int obstacleCount;
     public float ObstacleRange;
     public Text winLabel;
 
@@ -29,13 +29,14 @@ public class GameController : MonoBehaviour
     private float _turnTimer = 900;
     public List<FighterController> blueFighters;
     public List<FighterController> orangeFighters;
-    private List<GameObject> Obstacles = new List<GameObject>();
+    public List<GameObject> obstacles;
     private bool _gameOver;
 
     /*
      * This function initializes the game
      */
     void Awake(){
+        obstacles = new List<GameObject>();
         CreateBattlefield();
         Reset();
     }
@@ -58,16 +59,16 @@ public class GameController : MonoBehaviour
         
         // If the framerate is too low then decrease the generations per second
 
-        if(fps < 10 && blueAI.GPF > 5){
-            blueAI.GPF--;
-            orangeAI.GPF--;
+        if(fps < 10 && blueAI.aiSettings.GPF > 5){
+            blueAI.aiSettings.GPF--;
+            orangeAI.aiSettings.GPF--;
         }
 
         // If the framerate is high enough then we can start increasing the generations per second
 
-        else if(fps > 12 && fps < 50 && blueAI.GPF < 50){
-            blueAI.GPF++;
-            orangeAI.GPF++;
+        else if(fps > 12 && fps < 50 && blueAI.aiSettings.GPF < 50){
+            blueAI.aiSettings.GPF++;
+            orangeAI.aiSettings.GPF++;
         }
 
         // Get the number of fighters
@@ -223,10 +224,11 @@ public class GameController : MonoBehaviour
     {
 
         // Destroy all obstacles currently on the battlefield
-
-        if (Obstacles.Count > 0)
+        print(obstacles.Count);
+        if (obstacles.Count > 0)
         {
-            foreach (GameObject obstacle in Obstacles)
+            print("Deleting obstacles!");
+            foreach (GameObject obstacle in obstacles)
             {
                 Destroy(obstacle);
             }
@@ -234,10 +236,10 @@ public class GameController : MonoBehaviour
 
         // Spawn a bunch of random cubes in the battlefield
 
-        for (int i = 0; i < ObstacleCount; i++)
+        for (int i = 0; i < obstacleCount; i++)
         {
-            GameObject newObstacle = GameObject.Instantiate(Obstacle, new Vector3((Random.value * ObstacleRange) - (ObstacleRange / 2), -0.5f, (Random.value * ObstacleRange) - (ObstacleRange / 2)), Quaternion.Euler(Random.value * 90, Random.value * 90, Random.value * 90));
-            Obstacles.Add(newObstacle);
+            GameObject newObstacle = Instantiate(Obstacle, new Vector3((Random.value * ObstacleRange) - (ObstacleRange / 2), -0.5f, (Random.value * ObstacleRange) - (ObstacleRange / 2)), Quaternion.Euler(Random.value * 90, Random.value * 90, Random.value * 90));
+            obstacles.Add(newObstacle);
         }
     }
 

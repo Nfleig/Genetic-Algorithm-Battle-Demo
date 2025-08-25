@@ -44,19 +44,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b23a88b4fa27a246af7f6bdf3659fc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyNexus: {fileID: 0}
-  nexus: {fileID: 0}
   isOrange: 0
-  populationSize: 500
-  generations: 1000
-  GPF: 50
-  families: 5
-  mutationChance: 0.03
-  selectionMethod: 0
-  replacementMethod: 2
-  lethalDamageWeight: 1
-  damageDealtWeight: 1
-  damageTakenWeight: 1
-  extraDamageWeight: 2
-  enemyExtraDamageWeight: 4
-  distanceWeight: 1
+  aiSettings:
+    populationSize: 500
+    generations: 1000
+    GPF: 50
+    families: 5
+    mutationChance: 0.3
+    selectionMethod: 0
+    replacementMethod: 2
+    lethalDamageWeight: 1
+    damageDealtWeight: 1
+    damageTakenWeight: 2
+    extraDamageWeight: 2
+    enemyExtraDamageWeight: 4
+    distanceWeight: 1

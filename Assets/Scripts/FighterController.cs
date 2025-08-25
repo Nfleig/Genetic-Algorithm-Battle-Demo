@@ -7,7 +7,7 @@ public class FighterController : MonoBehaviour
 {
     // Public Properties
     public int id;
-    public double health;
+    public float health;
     public int damage;
     public int armor;
     public bool isOrange;
@@ -16,7 +16,7 @@ public class FighterController : MonoBehaviour
     public bool dead;
     public GameObject Target;
     public Material deathMaterial;
-    public double maxHealth;
+    public float maxHealth;
     public int maxDamage;
     public int maxArmor;
 
