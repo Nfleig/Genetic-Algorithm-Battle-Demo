@@ -115,6 +115,7 @@ public class AISettingsManager : MonoBehaviour
     public void UpdateSetting(Setting setting)
     {
         AI.AISettings aiSettings = isOrange ? orangeAISettings : blueAISettings;
+        changeText.SetActive(true);
         switch (setting.ID)
         {
             case SettingID.DamageDealtWeight:
@@ -213,6 +214,7 @@ public class AISettingsManager : MonoBehaviour
     {
         blueAI.aiSettings = blueAISettings;
         orangeAI.aiSettings = orangeAISettings;
+        changeText.SetActive(false);
 
         // If the obstacle count has been updated then regenerate the battlefield
 

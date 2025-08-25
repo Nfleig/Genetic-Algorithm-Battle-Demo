@@ -49,8 +49,8 @@ MonoBehaviour:
     populationSize: 500
     generations: 1000
     GPF: 50
-    families: 5
-    mutationChance: 0.3
+    families: 50
+    mutationChance: 0.1
     selectionMethod: 0
     replacementMethod: 2
     lethalDamageWeight: 1
