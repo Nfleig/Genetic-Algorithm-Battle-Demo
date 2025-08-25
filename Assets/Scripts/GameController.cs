@@ -22,14 +22,14 @@ public class GameController : MonoBehaviour
     public GameObject UI;
     public GameObject Obstacle;
     public int obstacleCount;
-    public float ObstacleRange;
+    public float obstacleRange;
     public Text winLabel;
+    public List<FighterController> blueFighters;
+    public List<FighterController> orangeFighters;
 
     // Private Properties
     private float _turnTimer = 900;
-    public List<FighterController> blueFighters;
-    public List<FighterController> orangeFighters;
-    public List<GameObject> obstacles;
+    private List<GameObject> obstacles;
     private bool _gameOver;
 
     /*
@@ -238,7 +238,7 @@ public class GameController : MonoBehaviour
 
         for (int i = 0; i < obstacleCount; i++)
         {
-            GameObject newObstacle = Instantiate(Obstacle, new Vector3((Random.value * ObstacleRange) - (ObstacleRange / 2), -0.5f, (Random.value * ObstacleRange) - (ObstacleRange / 2)), Quaternion.Euler(Random.value * 90, Random.value * 90, Random.value * 90));
+            GameObject newObstacle = Instantiate(Obstacle, new Vector3((Random.value * obstacleRange) - (obstacleRange / 2), -0.5f, (Random.value * obstacleRange) - (obstacleRange / 2)), Quaternion.Euler(Random.value * 90, Random.value * 90, Random.value * 90));
             obstacles.Add(newObstacle);
         }
     }
