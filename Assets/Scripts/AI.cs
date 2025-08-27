@@ -166,18 +166,16 @@ public class AI : MonoBehaviour
                 tempEnemies.Add(fighter);
             }
 
+            for (int i = 0; i < playerList.Count - enemyList.Count; i++)
+            {
+                tempEnemies.Add(ai.isOrange ? blueNexus : orangeNexus);
+            }
+
             foreach (Fighter fighter in playerList)
             {
-                if (tempEnemies.Count > 0)
-                {
-                    int randomID = (int)(UnityEngine.Random.value * (tempEnemies.Count - 1));
-                    genotype.Add(new AttackPair(fighter, tempEnemies[randomID]));
-                    tempEnemies.RemoveAt(randomID);
-                }
-                else
-                {
-                    genotype.Add(new AttackPair(fighter, ai.isOrange ? blueNexus : orangeNexus));
-                }
+                int randomID = (int)(UnityEngine.Random.value * (tempEnemies.Count - 1));
+                genotype.Add(new AttackPair(fighter, tempEnemies[randomID]));
+                tempEnemies.RemoveAt(randomID);
             }
 
             foreach (Fighter enemyFighter in tempEnemies)
