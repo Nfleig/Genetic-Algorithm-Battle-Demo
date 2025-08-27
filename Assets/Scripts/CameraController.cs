@@ -91,7 +91,8 @@ public class CameraController : MonoBehaviour
         // If the camera is not too zoomed in or out then zoom the camera
 
         if((distance > MinZoomDistance || scroll < 0f) && (distance < MaxZoomDistance || scroll > 0f)){
-            float zoomDistance = scroll * 5;
+            float zoomDistance = scroll * ZoomSpeed;
+            print(distance);
 
             cameraObject.transform.position += cameraObject.transform.forward * Mathf.Min(zoomDistance, distance - MinZoomDistance);
         }
