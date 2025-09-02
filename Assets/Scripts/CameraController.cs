@@ -92,7 +92,6 @@ public class CameraController : MonoBehaviour
 
         if((distance > MinZoomDistance || scroll < 0f) && (distance < MaxZoomDistance || scroll > 0f)){
             float zoomDistance = scroll * ZoomSpeed;
-            print(distance);
 
             cameraObject.transform.position += cameraObject.transform.forward * Mathf.Min(zoomDistance, distance - MinZoomDistance);
         }

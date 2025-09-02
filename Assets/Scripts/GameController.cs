@@ -20,6 +20,7 @@ public class GameController : MonoBehaviour
     public int nexusHealth = 80;
     public GameObject menu;
     public GameObject UI;
+    public GameObject controls;
     public GameObject Obstacle;
     public int obstacleCount;
     public float obstacleRange;
@@ -44,7 +45,8 @@ public class GameController : MonoBehaviour
     /*
      * This is the main gameplay loop
      */
-    void Update(){
+    void Update()
+    {
 
         /*
          * This is how I tried to fix my framerate issues before I knew
@@ -56,17 +58,19 @@ public class GameController : MonoBehaviour
         // Calculate the fps
 
         float fps = 1.0f / Time.deltaTime;
-        
+
         // If the framerate is too low then decrease the generations per second
 
-        if(fps < 10 && blueAI.aiSettings.GPF > 5){
+        if (fps < 10 && blueAI.aiSettings.GPF > 5)
+        {
             blueAI.aiSettings.GPF--;
             orangeAI.aiSettings.GPF--;
         }
 
         // If the framerate is high enough then we can start increasing the generations per second
 
-        else if(fps > 12 && fps < 50 && blueAI.aiSettings.GPF < 50){
+        else if (fps > 12 && fps < 50 && blueAI.aiSettings.GPF < 50)
+        {
             blueAI.aiSettings.GPF++;
             orangeAI.aiSettings.GPF++;
         }
@@ -74,14 +78,18 @@ public class GameController : MonoBehaviour
         // Get the number of fighters
 
         int numFighters = 0;
-        foreach(FighterController fighter in blueFighters){
-            if(!fighter.dead){
+        foreach (FighterController fighter in blueFighters)
+        {
+            if (!fighter.dead)
+            {
                 numFighters++;
             }
         }
         int numDefenders = 0;
-        foreach(FighterController fighter in orangeFighters){
-            if(!fighter.dead){
+        foreach (FighterController fighter in orangeFighters)
+        {
+            if (!fighter.dead)
+            {
                 numDefenders++;
             }
         }
@@ -94,7 +102,8 @@ public class GameController : MonoBehaviour
             _gameOver = true;
             blueAI.Stop();
             orangeAI.Stop();
-            foreach(FighterController fighter in blueFighters.Concat(orangeFighters)){
+            foreach (FighterController fighter in blueFighters.Concat(orangeFighters))
+            {
                 fighter.Reset();
             }
         }
@@ -104,16 +113,19 @@ public class GameController : MonoBehaviour
             _gameOver = true;
             blueAI.Stop();
             orangeAI.Stop();
-            foreach(FighterController fighter in blueFighters.Concat(orangeFighters)){
+            foreach (FighterController fighter in blueFighters.Concat(orangeFighters))
+            {
                 fighter.Reset();
             }
         }
 
         // If the game hasn't ended, then rerun the genetic algorithms at regular intervals
 
-        if(!_gameOver){
+        if (!_gameOver)
+        {
             _turnTimer -= Time.fixedDeltaTime;
-            if(_turnTimer <= 0){
+            if (_turnTimer <= 0)
+            {
                 //print(fighters.Count);
                 blueAI.runAI();
                 orangeAI.runAI();
@@ -123,9 +135,16 @@ public class GameController : MonoBehaviour
 
         // Toggle the menu if the player presses escape
 
-        if(Input.GetKeyDown("space")){
+        if (Input.GetButtonDown("Cancel"))
+        {
             menu.SetActive(!menu.activeSelf);
             UI.SetActive(!UI.activeSelf);
+        }
+
+        // Toggle the controls display if the player presses enter
+        if (Input.GetButtonDown("Submit"))
+        {
+            controls.SetActive(!controls.activeSelf);
         }
     }
 
