@@ -7782,6 +7782,7 @@ MonoBehaviour:
   orangeNexus: {fileID: 8259290546276040465}
   blueAI: {fileID: 1882503567}
   orangeAI: {fileID: 1177997317}
+  multithreading: 1
   blueFighterCount: 20
   orangeFighterCount: 20
   armyDistance: 30
