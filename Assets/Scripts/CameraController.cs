@@ -9,17 +9,18 @@ public class CameraController : MonoBehaviour
     public float ZoomSpeed;
     public float MinZoomDistance;
     public float MaxZoomDistance;
+    public Vector2 BoundingBoxSize;
 
     // Private Properties
-    private Camera camera;
+    private Camera cameraObject;
     private bool _isClicking;
     private float rotX = 50;
 
 
     void Awake()
     {
-        camera = Camera.main;
-        rotX = camera.transform.eulerAngles.x;
+        cameraObject = Camera.main;
+        rotX = cameraObject.transform.eulerAngles.x;
     }
 
     /*
@@ -48,15 +49,20 @@ public class CameraController : MonoBehaviour
         // Apply camera movement
 
         transform.position += dir * MovementSpeed * Time.deltaTime;
+
+        transform.position = new Vector3(Mathf.Clamp(transform.position.x, -BoundingBoxSize.x / 2, BoundingBoxSize.x / 2),
+            transform.position.y,
+            Mathf.Clamp(transform.position.z, -BoundingBoxSize.y / 2, BoundingBoxSize.y / 2));
         
         // If the player is clicking then rotate the camera with their mouse
 
-        if(_isClicking){
+        if (_isClicking)
+        {
 
             // Get the horizontal mouse movement
 
             float rotY = Input.GetAxis("Mouse X") * 5;
-            
+
             // Update the camera rotation with 
 
             rotX += Input.GetAxis("Mouse Y") * 2;
@@ -64,14 +70,14 @@ public class CameraController : MonoBehaviour
             // Clamp the camera's vertical rotation
 
             rotX = Mathf.Clamp(rotX, -60, -30);
-            
+
             // Apply the camera's horizontal rotation to the parent object
 
             transform.eulerAngles = new Vector3(0, transform.eulerAngles.y + rotY, 0);
-            
+
             // Apply the camera's vertical rotation to the camera itself
-            
-            camera.transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, 0);
+
+            cameraObject.transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, 0);
         }
 
         // Get the scrollwheel input
@@ -80,12 +86,15 @@ public class CameraController : MonoBehaviour
         
         // Calculate the distance that the camera is scrolled in
 
-        float distance = Vector3.Distance(transform.position, camera.transform.position);
+        float distance = Vector3.Distance(transform.position, cameraObject.transform.position);
         
         // If the camera is not too zoomed in or out then zoom the camera
 
-        if(!((distance < MinZoomDistance && scroll > 0f) || (distance > MaxZoomDistance && scroll < 0f))){
-            camera.transform.position += camera.transform.forward * scroll * 5;
+        if((distance > MinZoomDistance || scroll < 0f) && (distance < MaxZoomDistance || scroll > 0f)){
+            float zoomDistance = scroll * ZoomSpeed;
+            print(distance);
+
+            cameraObject.transform.position += cameraObject.transform.forward * Mathf.Min(zoomDistance, distance - MinZoomDistance);
         }
 
     }

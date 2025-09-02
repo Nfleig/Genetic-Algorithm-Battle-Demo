@@ -6,10 +6,10 @@ using System;
 
 public class Setting : MonoBehaviour
 {
-    public int ID;
-    public string name;
+    public AISettingsManager.SettingID ID;
+    public string settingName;
     public string inputString;
-    public float value;
+    public float floatValue;
     public bool boolValue;
     public int numValue;
     public Slider slider;
@@ -18,34 +18,90 @@ public class Setting : MonoBehaviour
     public Dropdown dropdown;
 
     private Text label;
+    private AISettingsManager settingsManager;
     public GameObject errorText;
     // Start is called before the first frame update
     void Start()
     {
         label = GetComponent<Text>();
+        settingsManager = GameObject.FindWithTag("SettingsManager").GetComponent<AISettingsManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(slider){
-            value = slider.value;
-            label.text = name + ":\n" + value;
+        if (slider)
+        {
+            floatValue = slider.value;
+            label.text = settingName + ":\n" + floatValue;
         }
-        else if(toggle){
+        else if (toggle)
+        {
             boolValue = toggle.isOn;
         }
-        else if(input){
-            try{
-                numValue = System.Convert.ToInt32(input.text);
+        else if (input)
+        {
+            try
+            {
+                numValue = Convert.ToInt32(input.text);
                 errorText.SetActive(false);
             }
-            catch(FormatException e){
+            catch (FormatException)
+            {
                 errorText.SetActive(true);
             }
         }
-        else if(dropdown){
+        else if (dropdown)
+        {
             numValue = dropdown.value;
+        }
+    }
+
+    public void SetValue(string value)
+    {
+        try
+        {
+            numValue = Convert.ToInt32(input.text);
+            errorText.SetActive(false);
+        }
+        catch (FormatException)
+        {
+            errorText.SetActive(true);
+        }
+        settingsManager.UpdateSetting(this);
+    }
+
+    public void SetValue(float floatValue)
+    {
+        this.floatValue = floatValue;
+        settingsManager.UpdateSetting(this);
+    }
+
+    public void SetValue(int numValue)
+    {
+        this.numValue = numValue;
+        settingsManager.UpdateSetting(this);
+    }
+
+    public void SetValueWithoutNotify(float floatValue)
+    {
+        this.floatValue = floatValue;
+        if (slider)
+        {
+            slider.SetValueWithoutNotify((float)floatValue);
+        }
+    }
+
+    public void SetValueWithoutNotify(int numValue)
+    {
+        this.numValue = numValue;
+        if (input)
+        {
+            input.SetTextWithoutNotify("" + numValue);
+        }
+        else if (dropdown)
+        {
+            dropdown.SetValueWithoutNotify(numValue);
         }
     }
 }
