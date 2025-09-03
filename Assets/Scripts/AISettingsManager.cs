@@ -28,8 +28,8 @@ public class AISettingsManager : MonoBehaviour
     // Public Properties
     public AI blueAI;
     public AI orangeAI;
-    public AI.AISettings blueAISettings;
-    public AI.AISettings orangeAISettings;
+    public GeneticAlgorithm.AISettings blueAISettings;
+    public GeneticAlgorithm.AISettings orangeAISettings;
     public bool isOrange;
     public GameObject changeText;
     public Text aiSettingsText;
@@ -49,8 +49,8 @@ public class AISettingsManager : MonoBehaviour
     void Start()
     {
         settings = new List<Setting>();
-        blueAISettings = new AI.AISettings(blueAI.aiSettings);
-        orangeAISettings = new AI.AISettings(orangeAI.aiSettings);
+        blueAISettings = new GeneticAlgorithm.AISettings(blueAI.aiSettings);
+        orangeAISettings = new GeneticAlgorithm.AISettings(orangeAI.aiSettings);
         gameController = GameObject.FindWithTag("GameController").GetComponent<GameController>();
         oldDebrisCount = gameController.obstacleCount;
         foreach (GameObject settingObject in GameObject.FindGameObjectsWithTag("Setting"))
@@ -114,7 +114,7 @@ public class AISettingsManager : MonoBehaviour
 
     public void UpdateSetting(Setting setting)
     {
-        AI.AISettings aiSettings = isOrange ? orangeAISettings : blueAISettings;
+        GeneticAlgorithm.AISettings aiSettings = isOrange ? orangeAISettings : blueAISettings;
         changeText.SetActive(true);
         switch (setting.ID)
         {
@@ -170,7 +170,7 @@ public class AISettingsManager : MonoBehaviour
                 aiSettings.families = setting.numValue;
                 break;
             case SettingID.SelectionMethod:
-                aiSettings.selectionMethod = AI.IntToSelectionMethod(setting.numValue);
+                aiSettings.selectionMethod = GeneticAlgorithm.IntToSelectionMethod(setting.numValue);
                 break;
             case SettingID.FighterCount:
                 if (setting.numValue < 0)
@@ -201,7 +201,7 @@ public class AISettingsManager : MonoBehaviour
                 gameController.turnDelay = setting.numValue;
                 break;
             case SettingID.ReplacementMethod:
-                aiSettings.replacementMethod = AI.IntToReplacementMethod(setting.numValue);
+                aiSettings.replacementMethod = GeneticAlgorithm.IntToReplacementMethod(setting.numValue);
                 break;
         }
     }
@@ -232,7 +232,7 @@ public class AISettingsManager : MonoBehaviour
         isOrange = !isOrange;
         button.image.color = isOrange ? orangeColor : blueColor;
         button.GetComponentInChildren<TextMeshProUGUI>().color = isOrange ? Color.black : Color.white;
-        AI.AISettings aiSettings = isOrange ? orangeAISettings : blueAISettings;
+        GeneticAlgorithm.AISettings aiSettings = isOrange ? orangeAISettings : blueAISettings;
         aiSettingsText.text = (isOrange ? "Orange" : "Blue") + " AI Settings";
         foreach (Setting setting in settings)
         {

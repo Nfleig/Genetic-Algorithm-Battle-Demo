@@ -13,6 +13,7 @@ public class GameController : MonoBehaviour
     public Nexus orangeNexus;
     public AI blueAI;
     public AI orangeAI;
+    public bool multithreading;
     public int blueFighterCount;
     public int orangeFighterCount;
     public float armyDistance = 3;
@@ -126,7 +127,6 @@ public class GameController : MonoBehaviour
             _turnTimer -= Time.fixedDeltaTime;
             if (_turnTimer <= 0)
             {
-                //print(fighters.Count);
                 blueAI.runAI();
                 orangeAI.runAI();
                 _turnTimer = turnDelay;
