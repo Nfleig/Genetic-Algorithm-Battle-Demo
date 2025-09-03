@@ -101,8 +101,8 @@ public class GameController : MonoBehaviour
         {
             winLabel.text = "Orange Team Wins";
             _gameOver = true;
-            blueAI.Stop();
-            orangeAI.Stop();
+            blueAI.gameObject.SetActive(false);
+            orangeAI.gameObject.SetActive(false);
             foreach (FighterController fighter in blueFighters.Concat(orangeFighters))
             {
                 fighter.Reset();
@@ -112,8 +112,8 @@ public class GameController : MonoBehaviour
         {
             winLabel.text = "Blue Team Wins";
             _gameOver = true;
-            blueAI.Stop();
-            orangeAI.Stop();
+            blueAI.gameObject.SetActive(false);
+            orangeAI.gameObject.SetActive(false);
             foreach (FighterController fighter in blueFighters.Concat(orangeFighters))
             {
                 fighter.Reset();

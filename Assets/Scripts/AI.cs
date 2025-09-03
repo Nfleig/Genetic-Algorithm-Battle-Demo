@@ -15,7 +15,6 @@ public class AI : MonoBehaviour
     public GeneticAlgorithm.AISettings aiSettings;
 
     private bool isActive = false;
-    private bool isStarting = true;
     private int currentGeneration = 0;
     private GameController gameController;
     private GeneticAlgorithm geneticAlgorithm;
@@ -35,7 +34,7 @@ public class AI : MonoBehaviour
 
     public void runAI()
     {
-        geneticAlgorithm.Reset(gameController);
+        geneticAlgorithm.Reset(aiSettings, gameController);
         if (gameController.multithreading)
         {
             CancellationToken evolutionTaskCancellationToken = evolutionTaskCancellationTokenSource.Token;
@@ -44,7 +43,6 @@ public class AI : MonoBehaviour
         }
         currentGeneration = 0;
         isActive = true;
-        isStarting = true;
     }
 
     void Update()
@@ -127,7 +125,7 @@ public class AI : MonoBehaviour
     //This method is called once the game has ended and it will make all remaining units return to their original position
     public void Stop()
     {
-        evolutionTaskCancellationTokenSource.Cancel();
+        //evolutionTaskCancellationTokenSource.Cancel();
         isActive = false;
 
     }

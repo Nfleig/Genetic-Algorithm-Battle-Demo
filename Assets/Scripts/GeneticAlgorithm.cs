@@ -363,8 +363,9 @@ public class GeneticAlgorithm
         }
     }
 
-    public void Reset(GameController gameController)
+    public void Reset(AISettings aiSettings, GameController gameController)
     {
+        this.aiSettings = aiSettings;
         blueNexus.SetHealth(gameController.blueNexus.health);
         orangeNexus.SetHealth(gameController.orangeNexus.health);
         blueFighters = gameController.blueFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, false, fighter.transform.position, fighter.id)).ToList();
