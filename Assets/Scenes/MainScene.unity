@@ -7786,7 +7786,7 @@ MonoBehaviour:
   blueFighterCount: 20
   orangeFighterCount: 20
   armyDistance: 30
-  turnDelay: 20
+  turnDelay: 10
   nexusHealth: 80
   menu: {fileID: 1361600966}
   UI: {fileID: 354492386}
