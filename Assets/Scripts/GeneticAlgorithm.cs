@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 public class GeneticAlgorithm
@@ -370,11 +371,10 @@ public class GeneticAlgorithm
         orangeFighters = gameController.orangeFighters.Select(fighter => new Fighter(fighter.health, fighter.damage, fighter.armor, true, fighter.transform.position, fighter.id)).ToList();
         bestGene = new Gene(this);
         currentGeneration = 0;
-        foreach (Gene gene in genes)
+        genes.Clear();
+        for (int i = 0; i < aiSettings.populationSize; i++)
         {
-            //Reset all of the genes each round
-            gene.Reset();
-            gene.CalculateFitness();
+            genes.Add(new Gene(this));
         }
     }
 
@@ -383,6 +383,23 @@ public class GeneticAlgorithm
         for (int i = 0; i < numGenerations; i++)
         {
             NewGeneration();
+            currentGeneration++;
+        }
+
+        genes.Sort(CompareFitnesses);
+
+        return genes[genes.Count - 1];
+    }
+
+    public Gene SimulateEvolution(int numGenerations, CancellationToken cancellationToken)
+    {
+        for (int i = 0; i < numGenerations; i++)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+            NewGeneration(cancellationToken);
             currentGeneration++;
         }
 
@@ -400,6 +417,199 @@ public class GeneticAlgorithm
     {
         return currentGeneration;
     }
+
+    void NewGeneration(CancellationToken cancellationToken)
+    {
+        /*
+            Uses Roulette selection to choose parents to breed.
+            This selection method takes the sum of all of the fitnesses and multiplies it by a random value between 0 and 1 to get a target value. 
+            It then starts at the gene with the highest fitness and goes down the list adding each fitness to a partial sum until the target value is reached. 
+            The gene who's fitness reached that target value is then chosen to be a parent.
+
+            This selection method is much more likely to pick genes with higher fitness, but it still gives the weaker genes a chance to be a parent which helps bring diversity to the genepool
+        */
+        double sumFitness = 0;
+        genes.Sort(CompareFitnesses);
+        List<Gene> newGenes = new List<Gene>();
+
+        bestGene = genes.Count > 0 ? genes[genes.Count - 1] : new Gene(this);
+
+        foreach (Gene gene in genes)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            sumFitness += gene.fitness;
+            newGenes.Add(gene);
+        }
+
+        int[] parentGeneIDs = new int[aiSettings.families * 2];
+
+        for (int i = 0; i < parentGeneIDs.Length; i++)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            if (aiSettings.selectionMethod == SelectionMethod.Roulette)
+            {
+                double target = sumFitness * random.NextDouble();
+                int index = genes.Count - 1;
+                double partialsum = 0;
+                while ((target > 0 && partialsum < target) || target < 0 && partialsum > target && index >= 0)
+                {
+                    partialsum += genes[index].fitness;
+                    if ((target > 0 && partialsum >= target) || (target <= 0 && partialsum <= target))
+                    {
+                        parentGeneIDs[i] = index;
+                    }
+                    index--;
+                }
+            }
+            else if (aiSettings.selectionMethod == SelectionMethod.Random)
+            {
+                int randomID = (int)(random.NextDouble() * (genes.Count - 1));
+                parentGeneIDs[i] = randomID;
+            }
+            else
+            {
+                parentGeneIDs[i] = genes.Count - (i + 1);
+            }
+        }
+        for (int i = 0; i < parentGeneIDs.Length; i += 2)
+        {
+            //print(parentGenes[i] + " " + parentGenes[i + 1]);
+            breedParents(parentGeneIDs[i], parentGeneIDs[i + 1], i, newGenes, cancellationToken);
+        }
+        genes = newGenes;
+    }
+    void breedParents(int parent1ID, int parent2ID, int familyNumber, List<Gene> newGenes, CancellationToken cancellationToken){
+        /*
+            This method creates two offspring from two parents by selecting two points (A and B) in the genotypes of the parents and copying their genotypes to their children as follows:
+
+            The first parent will give their genotype from the beginning to point A to the first child, from point A to point B to the second child, and from point B to the end to the first child.
+
+            The second parent will give their genotype from the beginning to point A to the second child, from point A to point B to the first child, and from point B to the end to the second child.
+        */
+
+        Gene parent1 = genes[parent1ID];
+        Gene parent2 = genes[parent2ID];
+        if (parent1.genotype.Count > 3)
+        {
+            int pointA = 0;
+            int pointB = 0;
+            while (pointA == pointB)
+            {
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                pointA = (int)(random.NextDouble() * (parent1.genotype.Count - 1));
+                pointB = (int)(random.NextDouble() * (parent1.genotype.Count - pointA - 1)) + pointA;
+            }
+            Gene child1 = new Gene(this);
+            Gene child2 = new Gene(this);
+
+            child1.genotype = new List<AttackPair>();
+            child2.genotype = new List<AttackPair>();
+
+            for (int i = 0; i < pointA; i++)
+            {
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                child1.genotype.Add(parent1.genotype[i]);
+                child2.genotype.Add(parent2.genotype[i]);
+            }
+            for (int i = pointA; i < pointB; i++)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                child1.genotype.Add(parent2.genotype[i]);
+                child2.genotype.Add(parent1.genotype[i]);
+            }
+            for (int i = pointB; i < parent1.genotype.Count; i++)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                child1.genotype.Add(parent1.genotype[i]);
+                child2.genotype.Add(parent2.genotype[i]);
+            }
+
+            //This conditional statement will then potentially mutate one of the children as described earlier.
+            if (random.NextDouble() <= aiSettings.mutationChance)
+            {
+                if (random.NextDouble() <= 0.5)
+                {
+                    child1.Mutate();
+                }
+                else
+                {
+                    child2.Mutate();
+                }
+            }
+
+            //Then if any of the children are stronger than any of the parents, the stronger children will replace the weaker parents.
+            child1.CalculateFitness();
+            child2.CalculateFitness();
+            if (aiSettings.replacementMethod == ReplacementMethod.WeakestParent)
+            {
+                if (child1.fitness > parent1.fitness)
+                {
+                    newGenes[parent1ID] = child1;
+                }
+                else if (child1.fitness > parent2.fitness)
+                {
+                    newGenes[parent2ID] = child1;
+                }
+
+                if (child2.fitness > parent1.fitness && parent1 != child2)
+                {
+                    newGenes[parent1ID] = child2;
+                }
+
+                if (child2.fitness > parent2.fitness && parent2 != child2)
+                {
+                    newGenes[parent2ID] = child2;
+                }
+            }
+            else if (aiSettings.replacementMethod == ReplacementMethod.BothParents)
+            {
+                newGenes[parent1ID] = child2;
+                newGenes[parent2ID] = child2;
+            }
+            else
+            {
+
+                if (child1.fitness > genes[familyNumber].fitness)
+                {
+                    newGenes[familyNumber] = child1;
+                }
+                else if (child1.fitness > genes[familyNumber + 1].fitness)
+                {
+                    newGenes[familyNumber + 1] = child1;
+                }
+
+                if (child1.fitness > genes[familyNumber].fitness && genes[familyNumber] != child1)
+                {
+                    newGenes[familyNumber] = child1;
+                }
+                else if (child1.fitness > genes[familyNumber + 1].fitness)
+                {
+                    newGenes[familyNumber + 1] = child1;
+                }
+            }
+        }
+    }
+
 
     void NewGeneration()
     {

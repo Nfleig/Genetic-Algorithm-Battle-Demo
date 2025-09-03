@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngineInternal;
@@ -19,12 +20,14 @@ public class AI : MonoBehaviour
     private GameController gameController;
     private GeneticAlgorithm geneticAlgorithm;
     private Task<GeneticAlgorithm.Gene> evolutionTask;
+    private CancellationTokenSource evolutionTaskCancellationTokenSource;
 
     void Awake()
     {
         //Initializes all of the lists
         gameController = GameObject.FindWithTag("GameController").GetComponent<GameController>();
         geneticAlgorithm = new GeneticAlgorithm(aiSettings, gameController, isOrange);
+        evolutionTaskCancellationTokenSource = new CancellationTokenSource();
         print("Should be initialized now");
     }
 
@@ -35,7 +38,8 @@ public class AI : MonoBehaviour
         geneticAlgorithm.Reset(gameController);
         if (gameController.multithreading)
         {
-            evolutionTask = new Task<GeneticAlgorithm.Gene>(() => geneticAlgorithm.SimulateEvolution(aiSettings.generations));
+            CancellationToken evolutionTaskCancellationToken = evolutionTaskCancellationTokenSource.Token;
+            evolutionTask = new Task<GeneticAlgorithm.Gene>((evolutionTaskCancellationToken) => geneticAlgorithm.SimulateEvolution(aiSettings.generations, (CancellationToken)evolutionTaskCancellationToken), evolutionTaskCancellationTokenSource.Token);
             evolutionTask.Start();
         }
         currentGeneration = 0;
@@ -123,6 +127,7 @@ public class AI : MonoBehaviour
     //This method is called once the game has ended and it will make all remaining units return to their original position
     public void Stop()
     {
+        evolutionTaskCancellationTokenSource.Cancel();
         isActive = false;
 
     }

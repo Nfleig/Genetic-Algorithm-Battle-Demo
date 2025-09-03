@@ -127,7 +127,6 @@ public class GameController : MonoBehaviour
             _turnTimer -= Time.fixedDeltaTime;
             if (_turnTimer <= 0)
             {
-                //print(fighters.Count);
                 blueAI.runAI();
                 orangeAI.runAI();
                 _turnTimer = turnDelay;
